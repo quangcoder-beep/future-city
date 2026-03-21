@@ -57,9 +57,14 @@ docker-compose.override.yml
 !gradlew.bat
 /*.py
 /*.sql
+/*.log
+/*.txt
+!README.md
 /db_data.txt
 /node_dump.txt
 /FilePatcher.java
 /FilePatcher.class
 /vande.txt
 /thongtin.txt
+/clear_orders.sql
+/data.sql
