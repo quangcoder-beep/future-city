@@ -1,254 +1,241 @@
--- =========================================================================
--- KHỞI TẠO DATABASE VÀ CHUẨN BỊ MÔI TRƯỜNG
--- =========================================================================
-SET QUOTED_IDENTIFIER ON;
 
 
-IF DB_ID('FutureCity') IS NULL
-BEGIN
-    CREATE DATABASE [FutureCity];
-END
 
-
-USE [FutureCity];
-
-
--- Xóa các bảng cũ (nếu có) để tạo lại đồng bộ Collation 100%, tránh lỗi Khóa nại
+-- Xóa các bảng cũ (nếu có) để tạo lại đồng bộ Collation 100%
 EXEC sp_MSforeachtable 'ALTER TABLE ? NOCHECK CONSTRAINT ALL';
-DROP TABLE IF EXISTS "TransactionLog", "Orders", "ShopSubscribers", "ShopItems", "PlayerInventory", "Players", "NpcDialogues", "Shops", "Npcs", "Items", "Users";
-
+DROP TABLE IF EXISTS [TransactionLog], [Orders], [ShopSubscribers], [ShopItems], [PlayerInventory], [Players], [NpcDialogues], [Shops], [Npcs], [Items], [Users];
 
 -- =========================================================================
 -- PHẦN 1: TẠO BẢNG & NẠP DỮ LIỆU
 -- =========================================================================
 
 -- 1. BẢNG USERS
-CREATE TABLE "Users" (
-    "UserID" INT,
-    "Username" NVARCHAR(50),
-    "PasswordHash" NVARCHAR(max),
-    "CreatedAt" DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY ("UserID"),
-    UNIQUE ("Username")
+CREATE TABLE [Users] (
+    [UserID] INT,
+    [Username] NVARCHAR(50),
+    [PasswordHash] NVARCHAR(max),
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    PRIMARY KEY ([UserID]),
+    UNIQUE ([Username])
 );
 
-INSERT INTO "Users" ("UserID", "Username", "PasswordHash", "CreatedAt") VALUES
+INSERT INTO [Users] ([UserID], [Username], [PasswordHash], [CreatedAt]) VALUES
     (1, 'admin', '$2a$10$GbKQ5hUnsyU5Zkm/t1v.xOHLbBqDkaPWvnxiEUBLzPjKbBON6NiCa', '2026-02-10 17:02:17.247'),
     (2, 'quangteocoder', '$2a$10$gTkC543.RmLHm3E6uNUSGu7PuJ5Zn6fb3A/qgAbcjElEAkpvFbDUq', '2026-02-10 17:19:49.213'),
     (6, 'heloo', '$2a$10$zEVkY2VUDkv/ubdKmeqs5OGS0fZWtR2yBmqCoQPgcU78w2ydFcvkK', '2026-03-07 19:18:03.517'),
     (7, 'quangteo', '$2a$10$ne.qSB1yopmQvJRbZiPzjOwU9zCgRrYKjMHLVYu6/qumSrGHLF1OK', '2026-03-16 21:27:39.273');
 
 -- 2. BẢNG ITEMS
-CREATE TABLE "Items" (
-    "ItemID" INT,
-    "ItemName" NVARCHAR(100),
-    "ItemType" NVARCHAR(20),
-    "Description" NVARCHAR(255) DEFAULT NULL,
-    "Rarity" NVARCHAR(20) DEFAULT 'COMMON',
-    PRIMARY KEY ("ItemID")
+CREATE TABLE [Items] (
+    [ItemID] INT,
+    [ItemName] NVARCHAR(100),
+    [ItemType] NVARCHAR(20),
+    [Description] NVARCHAR(255) DEFAULT NULL,
+    [Rarity] NVARCHAR(20) DEFAULT 'COMMON',
+    PRIMARY KEY ([ItemID])
 );
 
-INSERT INTO "Items" ("ItemID", "ItemName", "ItemType", "Description", "Rarity") VALUES
-    (1, 'Cơm Tấm Sườn Bì Trả', 'FOOD', 'Đặc sản đường phố', 'COMMON'),
-    (2, 'Phở Bò Kobe', 'FOOD', 'Thịt bò hảo hạng, hồi phục nhiều', 'RARE'),
-    (3, 'Trà Sữa Trân Châu', 'FOOD', 'Tăng 5% tốc độ', 'COMMON'),
-    (4, 'Combo Gà Rán', 'FOOD', 'Thức ăn nhanh', 'COMMON'),
-    (5, 'Bánh Mì Thịt Nướng', 'FOOD', 'Bữa sáng vội vã', 'COMMON'),
-    (6, 'Sushi Thập Cẩm', 'FOOD', 'Hải sản tươi sống', 'EPIC'),
-    (7, 'Bánh Bao Nóng hổi', 'FOOD', 'Đồ ăn khuya', 'COMMON'),
-    (8, 'Lẩu Thái Tomyum', 'FOOD', 'Món ăn cho gia đình', 'RARE'),
-    (9, 'Áo Thun Trơn Khăn', 'CLOTHES', 'Mặc thoải mái', 'COMMON'),
-    (10, 'Mũ Lưỡi Trai Neon', 'CLOTHES', 'Dạ quang đi đêm', 'UNCOMMON'),
-    (11, 'Giày Sneaker Chạy', 'CLOTHES', 'Tăng 15% tốc độ', 'RARE'),
-    (12, 'Áo Khoác Da', 'CLOTHES', 'Chống nước, ngầu', 'EPIC'),
-    (13, 'Đồng Hồ Rolex', 'CLOTHES', 'Sang trọng hàng đầu', 'LEGENDARY'),
-    (14, 'Kính Râm Thời Trang', 'CLOTHES', 'Sành điệu mùa hè', 'COMMON'),
-    (15, 'Túi Xách Hàng Hiệu', 'CLOTHES', 'Đựng được nhiều đồ', 'EPIC'),
-    (16, 'Sạc Dự Phòng', 'GENERAL', 'Sạc đầy 100% ĐT', 'UNCOMMON'),
-    (17, 'Tai Nghe Chống Ồn', 'GENERAL', 'Bluetooth thế hệ mới', 'RARE'),
-    (18, 'Laptop Gaming', 'GENERAL', 'Chơi game siêu mượt', 'LEGENDARY'),
-    (19, 'Bàn Phím Cơ', 'GENERAL', 'Gõ êm tay', 'RARE'),
-    (20, 'Bugi Xe Máy', 'GENERAL', 'Đồ phụ kiện sửa chữa', 'COMMON'),
-    (21, 'Cờ Lê Đa Năng', 'GENERAL', 'Sửa chữa máy móc', 'COMMON'),
-    (22, 'Màn Hình Cong 34"', 'GENERAL', 'Kích thước lớn', 'EPIC'),
-    (23, 'Thuốc Kháng Kháng Sinh', 'GENERAL', 'Chữa bệnh y tế', 'RARE'),
-    (57, 'TrÃ Sá»¯a TrÃ¢n ChÃ¢u', 'CONSUMABLE', 'Uá»‘ng vÃ o cháº¡y nhanh hÆ¡n 20% trong 5 phÃºt', 'COMMON'),
-    (58, 'Combo GÃ RÃ¡n', 'CONSUMABLE', 'Há»“i phá»¥c Ä‘áº§y thá»ƒ lá»±c', 'UNCOMMON'),
-    (59, 'MÅ© BÃ¡o Há»·', 'WEARABLE', 'TÄƒng 10% tiá»n thÆ°á»Ÿng khi giao hÃ ng', 'RARE'),
-    (60, 'GÃ³i BÆ°u Pháº©m', 'PACKAGE', 'Má»™t kiá»‡n hÃ ng cáº§n Ä‘Æ°á»£c giao gáº¥p', 'COMMON');
+INSERT INTO [Items] ([ItemID], [ItemName], [ItemType], [Description], [Rarity]) VALUES
+    (1, N'Cơm Tấm Sườn Bì Chả', 'FOOD', N'Đặc sản đường phố', 'COMMON'),
+    (2, N'Phở Bò Kobe', 'FOOD', N'Thịt bò hảo hạng, hồi phục nhiều', 'RARE'),
+    (3, N'Trà Sữa Trân Châu', 'FOOD', N'Tăng 5% tốc độ', 'COMMON'),
+    (4, N'Combo Gà Rán', 'FOOD', N'Thức ăn nhanh', 'COMMON'),
+    (5, N'Bánh Mì Thịt Nướng', 'FOOD', N'Bữa sáng vội vã', 'COMMON'),
+    (6, N'Sushi Thập Cẩm', 'FOOD', N'Hải sản tươi sống', 'EPIC'),
+    (7, N'Bánh Bao Nóng Hổi', 'FOOD', N'Đồ ăn khuya', 'COMMON'),
+    (8, N'Lẩu Thái Tomyum', 'FOOD', N'Món ăn cho gia đình', 'RARE'),
+    (9, N'Áo Thun Trơn', 'CLOTHES', N'Mặc thoải mái', 'COMMON'),
+    (10, N'Mũ Lưỡi Trai Neon', 'CLOTHES', N'Dạ quang đi đêm', 'UNCOMMON'),
+    (11, N'Giày Sneaker Chạy', 'CLOTHES', N'Tăng 15% tốc độ', 'RARE'),
+    (12, N'Áo Khoác Da', 'CLOTHES', N'Chống nước, ngầu', 'EPIC'),
+    (13, N'Đồng Hồ Rolex', 'CLOTHES', N'Sang trọng hàng đầu', 'LEGENDARY'),
+    (14, N'Kính Râm Thời Trang', 'CLOTHES', N'Sành điệu mùa hè', 'COMMON'),
+    (15, N'Túi Xách Hàng Hiệu', 'CLOTHES', N'Đựng được nhiều đồ', 'EPIC'),
+    (16, N'Sạc Dự Phòng', 'GENERAL', N'Sạc đầy 100% ĐT', 'UNCOMMON'),
+    (17, N'Tai Nghe Chống Ồn', 'GENERAL', N'Bluetooth thế hệ mới', 'RARE'),
+    (18, N'Laptop Gaming', 'GENERAL', N'Chơi game siêu mượt', 'LEGENDARY'),
+    (19, N'Bàn Phím Cơ', 'GENERAL', N'Gõ êm tay', 'RARE'),
+    (20, N'Bugi Xe Máy', 'GENERAL', N'Đồ phụ kiện sửa chữa', 'COMMON'),
+    (21, N'Cờ Lê Đa Năng', 'GENERAL', N'Sửa chữa máy móc', 'COMMON'),
+    (22, N'Màn Hình Cong 34"', 'GENERAL', N'Kích thước lớn', 'EPIC'),
+    (23, N'Thuốc Kháng Sinh', 'GENERAL', N'Chữa bệnh y tế', 'RARE'),
+    (57, N'Trà Sữa Trân Châu', 'CONSUMABLE', N'Uống vào chạy nhanh hơn 20% trong 5 phút', 'COMMON'),
+    (58, N'Combo Gà Rán', 'CONSUMABLE', N'Hồi phục đầy thể lực', 'UNCOMMON'),
+    (59, N'Mũ Báo Hỷ', 'WEARABLE', N'Tăng 10% tiền thưởng khi giao hàng', 'RARE'),
+    (60, N'Gói Bưu Phẩm', 'PACKAGE', N'Một kiện hàng cần giao gấp', 'COMMON');
 
 -- 3. BẢNG NPCS
-CREATE TABLE "Npcs" (
-    "NpcID" NVARCHAR(50),
-    "NpcName" NVARCHAR(100),
-    "LocationX" FLOAT DEFAULT NULL,
-    "LocationY" FLOAT DEFAULT NULL,
-    "LocationZ" FLOAT DEFAULT NULL,
-    PRIMARY KEY ("NpcID")
+CREATE TABLE [Npcs] (
+    [NpcID] NVARCHAR(50),
+    [NpcName] NVARCHAR(100),
+    [LocationX] FLOAT DEFAULT NULL,
+    [LocationY] FLOAT DEFAULT NULL,
+    [LocationZ] FLOAT DEFAULT NULL,
+    PRIMARY KEY ([NpcID])
 );
 
-INSERT INTO "Npcs" ("NpcID", "NpcName", "LocationX", "LocationY", "LocationZ") VALUES
-    ('npc-boy-idle.001', 'Bảo Vệ Tòa Nhà', 15, 0, 25),
-    ('npc-girl-wave.002', 'Cô Gái Du Khách', -45, 0, 35),
-    ('npc-oldman.001', 'Ông Lão Mất Đồ', 110, 0, -5);
+INSERT INTO [Npcs] ([NpcID], [NpcName], [LocationX], [LocationY], [LocationZ]) VALUES
+    ('npc-boy-idle.001', N'Bảo Vệ Tòa Nhà', 15, 0, 25),
+    ('npc-girl-wave.002', N'Cô Gái Du Khách', -45, 0, 35),
+    ('npc-oldman.001', N'Ông Lão Mất Đồ', 110, 0, -5);
 
 -- 4. BẢNG SHOPS
-CREATE TABLE "Shops" (
-    "ShopID" NVARCHAR(50),
-    "ShopName" NVARCHAR(100),
-    "LocationX" FLOAT DEFAULT NULL,
-    "LocationY" FLOAT DEFAULT NULL,
-    "LocationZ" FLOAT DEFAULT NULL,
-    PRIMARY KEY ("ShopID")
+CREATE TABLE [Shops] (
+    [ShopID] NVARCHAR(50),
+    [ShopName] NVARCHAR(100),
+    [LocationX] FLOAT DEFAULT NULL,
+    [LocationY] FLOAT DEFAULT NULL,
+    [LocationZ] FLOAT DEFAULT NULL,
+    PRIMARY KEY ([ShopID])
 );
 
-INSERT INTO "Shops" ("ShopID", "ShopName", "LocationX", "LocationY", "LocationZ") VALUES
-    ('\building-c.011', '\building-c.011', 1120, 0, -640),
-    ('building-a.005', 'building-a.005', 1440, 0, -160),
-    ('building-a.006', 'building-a.006', 960, 0, -240),
-    ('building-a.007', 'building-a.007', 1520, 0, -320),
-    ('building-a.008', 'building-a.008', 560, 0, -640),
-    ('building-a.009', 'building-a.009', 1360, 0, -640),
-    ('building-a.010', 'building-a.010', 640, 0, -720),
-    ('building-a.011', 'building-a.011', 240, 0, -880),
-    ('building-a.012', 'building-a.012', 1120, 0, -960),
-    ('building-a.013', 'building-a.013', 1520, 0, -960),
-    ('building-a.014', 'building-a.014', 1680, 0, -960),
-    ('building-a.015', 'building-a.015', 1360, 0, -1120),
-    ('building-a.016', 'building-a.016', 80, 0, -1440),
-    ('building-a.017', 'building-a.017', 720, 0, -1440),
-    ('building-a.020', 'building-a.020', 480, 0, -1520),
-    ('building-a.027', 'building-a.027', 1520, 0, -1840),
-    ('building-b.007', 'building-b.007', 320, 0, -720),
-    ('building-c.010', 'building-c.010', 1440, 0, -560),
-    ('building-c.012', 'building-c.012', 1360, 0, -880),
-    ('building-d.002', 'building-d.002', 1440, 0, -80),
-    ('building-d.015', 'building-d.015', 720, 0, -960),
-    ('building-skyscraper-a.008', 'building-skyscraper-a.008', 1760, 0, -640),
-    ('building-skyscraper-a.015', 'building-skyscraper-a.015', 1280, 0, -1360),
-    ('building-skyscraper-b.003', 'building-skyscraper-b.003', 1040, 0, -80),
-    ('building-skyscraper-b.010', 'building-skyscraper-b.010', 880, 0, -320),
-    ('building-skyscraper-b.016', 'building-skyscraper-b.016', 240, 0, -640),
-    ('building-skyscraper-b.022', 'building-skyscraper-b.022', 960, 0, -1040),
-    ('shop-building-b.003', 'shop-building-b.003', 640, 0, -320),
-    ('shop-building-b.008', 'shop-building-b.008', 880, 0, -720),
-    ('shop-building-b.012', 'shop-building-b.012', 640, 0, -880),
-    ('shop-building-b.023', 'shop-building-b.023', 160, 0, -1440),
-    ('shop-building-c.002', 'shop-building-c.002', 720, 0, -80),
-    ('shop-building-c.009', 'shop-building-c.009', 240, 0, -560),
-    ('shop-building-c.018', 'shop-building-c.018', 1280, 0, -1680),
-    ('shop-building-d.006', 'shop-building-d.006', 320, 0, -480),
-    ('shop-building-d.012', 'shop-building-d.012', 1120, 0, -880),
-    ('shop-building-skyscraper-a.002', 'shop-building-skyscraper-a.002', 1120, 0, -80),
-    ('shop-building-skyscraper-a.004', 'shop-building-skyscraper-a.004', 640, 0, -240),
-    ('shop-building-skyscraper-a.006', 'shop-building-skyscraper-a.006', 1680, 0, -240),
-    ('shop-building-skyscraper-a.007', 'shop-building-skyscraper-a.007', 960, 0, -640),
-    ('shop-building-skyscraper-a.010', 'shop-building-skyscraper-a.010', 320, 0, -960),
-    ('shop-building-skyscraper-a.011', 'shop-building-skyscraper-a.011', 480, 0, -1040),
-    ('shop-building-skyscraper-a.012', 'shop-building-skyscraper-a.012', 560, 0, -1040),
-    ('shop-building-skyscraper-a.014', 'shop-building-skyscraper-a.014', 1280, 0, -1280),
-    ('shop-building-skyscraper-a.016', 'shop-building-skyscraper-a.016', 560, 0, -1440),
-    ('shop-building-skyscraper-a.018', 'shop-building-skyscraper-a.018', 1440, 0, -1520),
-    ('shop-building-skyscraper-a.019', 'shop-building-skyscraper-a.019', 560, 0, -1680),
-    ('shop-building-skyscraper-b.001', 'shop-building-skyscraper-b.001', 160, 0, -80),
-    ('shop-building-skyscraper-b.005', 'shop-building-skyscraper-b.005', 560, 0, -160),
-    ('shop-building-skyscraper-b.007', 'shop-building-skyscraper-b.007', 1280, 0, -160),
-    ('shop-building-skyscraper-b.008', 'shop-building-skyscraper-b.008', 720, 0, -240),
-    ('shop-building-skyscraper-b.009', 'shop-building-skyscraper-b.009', 1280, 0, -240),
-    ('shop-building-skyscraper-b.011', 'shop-building-skyscraper-b.011', 1360, 0, -320),
-    ('shop-building-skyscraper-b.012', 'shop-building-skyscraper-b.012', 160, 0, -480),
-    ('shop-building-skyscraper-b.013', 'shop-building-skyscraper-b.013', 1440, 0, -480),
-    ('shop-building-skyscraper-b.014', 'shop-building-skyscraper-b.014', 80, 0, -560),
-    ('shop-building-skyscraper-b.015', 'shop-building-skyscraper-b.015', 1120, 0, -560),
-    ('shop-building-skyscraper-b.017', 'shop-building-skyscraper-b.017', 880, 0, -640),
-    ('shop-building-skyscraper-b.020', 'shop-building-skyscraper-b.020', 1120, 0, -720),
-    ('shop-building-skyscraper-b.024', 'shop-building-skyscraper-b.024', 480, 0, -1280),
-    ('shop-building-skyscraper-b.025', 'shop-building-skyscraper-b.025', 880, 0, -1280);
+INSERT INTO [Shops] ([ShopID], [ShopName], [LocationX], [LocationY], [LocationZ]) VALUES
+    ('building-c.011', 'Building C.011', 1120, 0, -640),
+    ('building-a.005', 'Building A.005', 1440, 0, -160),
+    ('building-a.006', 'Building A.006', 960, 0, -240),
+    ('building-a.007', 'Building A.007', 1520, 0, -320),
+    ('building-a.008', 'Building A.008', 560, 0, -640),
+    ('building-a.009', 'Building A.009', 1360, 0, -640),
+    ('building-a.010', 'Building A.010', 640, 0, -720),
+    ('building-a.011', 'Building A.011', 240, 0, -880),
+    ('building-a.012', 'Building A.012', 1120, 0, -960),
+    ('building-a.013', 'Building A.013', 1520, 0, -960),
+    ('building-a.014', 'Building A.014', 1680, 0, -960),
+    ('building-a.015', 'Building A.015', 1360, 0, -1120),
+    ('building-a.016', 'Building A.016', 80, 0, -1440),
+    ('building-a.017', 'Building A.017', 720, 0, -1440),
+    ('building-a.020', 'Building A.020', 480, 0, -1520),
+    ('building-a.027', 'Building A.027', 1520, 0, -1840),
+    ('building-b.007', 'Building B.007', 320, 0, -720),
+    ('building-c.010', 'Building C.010', 1440, 0, -560),
+    ('building-c.012', 'Building C.012', 1360, 0, -880),
+    ('building-d.002', 'Building D.002', 1440, 0, -80),
+    ('building-d.015', 'Building D.015', 720, 0, -960),
+    ('building-skyscraper-a.008', 'Building Skyscraper A.008', 1760, 0, -640),
+    ('building-skyscraper-a.015', 'Building Skyscraper A.015', 1280, 0, -1360),
+    ('building-skyscraper-b.003', 'Building Skyscraper B.003', 1040, 0, -80),
+    ('building-skyscraper-b.010', 'Building Skyscraper B.010', 880, 0, -320),
+    ('building-skyscraper-b.016', 'Building Skyscraper B.016', 240, 0, -640),
+    ('building-skyscraper-b.022', 'Building Skyscraper B.022', 960, 0, -1040),
+    ('shop-building-b.003', 'Shop Building B.003', 640, 0, -320),
+    ('shop-building-b.008', 'Shop Building B.008', 880, 0, -720),
+    ('shop-building-b.012', 'Shop Building B.012', 640, 0, -880),
+    ('shop-building-b.023', 'Shop Building B.023', 160, 0, -1440),
+    ('shop-building-c.002', 'Shop Building C.002', 720, 0, -80),
+    ('shop-building-c.009', 'Shop Building C.009', 240, 0, -560),
+    ('shop-building-c.018', 'Shop Building C.018', 1280, 0, -1680),
+    ('shop-building-d.006', 'Shop Building D.006', 320, 0, -480),
+    ('shop-building-d.012', 'Shop Building D.012', 1120, 0, -880),
+    ('shop-building-skyscraper-a.002', 'Shop Building Skyscraper A.002', 1120, 0, -80),
+    ('shop-building-skyscraper-a.004', 'Shop Building Skyscraper A.004', 640, 0, -240),
+    ('shop-building-skyscraper-a.006', 'Shop Building Skyscraper A.006', 1680, 0, -240),
+    ('shop-building-skyscraper-a.007', 'Shop Building Skyscraper A.007', 960, 0, -640),
+    ('shop-building-skyscraper-a.010', 'Shop Building Skyscraper A.010', 320, 0, -960),
+    ('shop-building-skyscraper-a.011', 'Shop Building Skyscraper A.011', 480, 0, -1040),
+    ('shop-building-skyscraper-a.012', 'Shop Building Skyscraper A.012', 560, 0, -1040),
+    ('shop-building-skyscraper-a.014', 'Shop Building Skyscraper A.014', 1280, 0, -1280),
+    ('shop-building-skyscraper-a.016', 'Shop Building Skyscraper A.016', 560, 0, -1440),
+    ('shop-building-skyscraper-a.018', 'Shop Building Skyscraper A.018', 1440, 0, -1520),
+    ('shop-building-skyscraper-a.019', 'Shop Building Skyscraper A.019', 560, 0, -1680),
+    ('shop-building-skyscraper-b.001', 'Shop Building Skyscraper B.001', 160, 0, -80),
+    ('shop-building-skyscraper-b.005', 'Shop Building Skyscraper B.005', 560, 0, -160),
+    ('shop-building-skyscraper-b.007', 'Shop Building Skyscraper B.007', 1280, 0, -160),
+    ('shop-building-skyscraper-b.008', 'Shop Building Skyscraper B.008', 720, 0, -240),
+    ('shop-building-skyscraper-b.009', 'Shop Building Skyscraper B.009', 1280, 0, -240),
+    ('shop-building-skyscraper-b.011', 'Shop Building Skyscraper B.011', 1360, 0, -320),
+    ('shop-building-skyscraper-b.012', 'Shop Building Skyscraper B.012', 160, 0, -480),
+    ('shop-building-skyscraper-b.013', 'Shop Building Skyscraper B.013', 1440, 0, -480),
+    ('shop-building-skyscraper-b.014', 'Shop Building Skyscraper B.014', 80, 0, -560),
+    ('shop-building-skyscraper-b.015', 'Shop Building Skyscraper B.015', 1120, 0, -560),
+    ('shop-building-skyscraper-b.017', 'Shop Building Skyscraper B.017', 880, 0, -640),
+    ('shop-building-skyscraper-b.020', 'Shop Building Skyscraper B.020', 1120, 0, -720),
+    ('shop-building-skyscraper-b.024', 'Shop Building Skyscraper B.024', 480, 0, -1280),
+    ('shop-building-skyscraper-b.025', 'Shop Building Skyscraper B.025', 880, 0, -1280);
 
 -- 5. BẢNG NPCDIALOGUES
-CREATE TABLE "NpcDialogues" (
-    "DialogueID" INT,
-    "NpcID" NVARCHAR(50),
-    "LineOrder" INT,
-    "DialogueText" NVARCHAR(500),
-    PRIMARY KEY ("DialogueID"),
-    CONSTRAINT "FK__NpcDialog__NpcID__2DE6D218" FOREIGN KEY ("NpcID") REFERENCES "Npcs" ("NpcID")
+CREATE TABLE [NpcDialogues] (
+    [DialogueID] INT,
+    [NpcID] NVARCHAR(50),
+    [LineOrder] INT,
+    [DialogueText] NVARCHAR(500),
+    PRIMARY KEY ([DialogueID]),
+    CONSTRAINT [FK__NpcDialog__NpcID__2DE6D218] FOREIGN KEY ([NpcID]) REFERENCES [Npcs] ([NpcID])
 );
 
-INSERT INTO "NpcDialogues" ("DialogueID", "NpcID", "LineOrder", "DialogueText") VALUES
-    (1, 'npc-boy-idle.001', 1, 'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
-    (2, 'npc-boy-idle.001', 2, 'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
-    (3, 'npc-girl-wave.002', 1, 'Xin chào! Thành phố này đẹp quá ha?'),
-    (4, 'npc-girl-wave.002', 2, 'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
-    (5, 'npc-oldman.001', 1, 'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
-    (6, 'npc-oldman.001', 2, 'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
-    (7, 'npc-boy-idle.001', 1, 'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
-    (8, 'npc-boy-idle.001', 2, 'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
-    (9, 'npc-girl-wave.002', 1, 'Xin chào! Thành phố này đẹp quá ha?'),
-    (10, 'npc-girl-wave.002', 2, 'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
-    (11, 'npc-oldman.001', 1, 'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
-    (12, 'npc-oldman.001', 2, 'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
-    (13, 'npc-boy-idle.001', 1, 'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
-    (14, 'npc-boy-idle.001', 2, 'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
-    (15, 'npc-girl-wave.002', 1, 'Xin chào! Thành phố này đẹp quá ha?'),
-    (16, 'npc-girl-wave.002', 2, 'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
-    (17, 'npc-oldman.001', 1, 'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
-    (18, 'npc-oldman.001', 2, 'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
-    (19, 'npc-boy-idle.001', 1, 'ChÃ o anh trai! Khu vá»±c nÃ y cáº¥m Ä‘á»— xe Ä‘áº¥y nhÃ©!'),
-    (20, 'npc-boy-idle.001', 2, 'Muá»‘n lÃ m shipper thÃ¬ qua cá»­a hÃ ng tiá»‡n lá»£i kia Ä‘Äƒng kÃ½.'),
-    (21, 'npc-girl-wave.002', 1, 'Xin chÃ o! ThÃ nh phá»‘ nÃ y Ä‘áº¹p quÃ¡ ha?'),
-    (22, 'npc-girl-wave.002', 2, 'TÃ´i Ä‘ang Ä‘á»£i báº¡n trai, mÃ mÃ£i chÆ°a tháº¥y anh áº¥y mang trÃ sá»¯a tá»›i.'),
-    (23, 'npc-oldman.001', 1, 'ÃŠ chÃ ng thanh niÃªn! GiÃºp lÃ£o giÃ nÃ y Ä‘i giao kiá»‡n hÃ ng Ä‘Æ°á»£c khÃ´ng?'),
-    (24, 'npc-oldman.001', 2, 'LÃ£o tráº£ 100 xu tiá»n cÃ´ng, Ä‘i nhanh káº»o há»ng Ä‘á»“!');
+INSERT INTO [NpcDialogues] ([DialogueID], [NpcID], [LineOrder], [DialogueText]) VALUES
+    (1, 'npc-boy-idle.001', 1, N'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
+    (2, 'npc-boy-idle.001', 2, N'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
+    (3, 'npc-girl-wave.002', 1, N'Xin chào! Thành phố này đẹp quá ha?'),
+    (4, 'npc-girl-wave.002', 2, N'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
+    (5, 'npc-oldman.001', 1, N'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
+    (6, 'npc-oldman.001', 2, N'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
+    (7, 'npc-boy-idle.001', 1, N'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
+    (8, 'npc-boy-idle.001', 2, N'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
+    (9, 'npc-girl-wave.002', 1, N'Xin chào! Thành phố này đẹp quá ha?'),
+    (10, 'npc-girl-wave.002', 2, N'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
+    (11, 'npc-oldman.001', 1, N'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
+    (12, 'npc-oldman.001', 2, N'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
+    (13, 'npc-boy-idle.001', 1, N'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
+    (14, 'npc-boy-idle.001', 2, N'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
+    (15, 'npc-girl-wave.002', 1, N'Xin chào! Thành phố này đẹp quá ha?'),
+    (16, 'npc-girl-wave.002', 2, N'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
+    (17, 'npc-oldman.001', 1, N'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
+    (18, 'npc-oldman.001', 2, N'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!'),
+    (19, 'npc-boy-idle.001', 1, N'Chào anh trai! Khu vực này cấm đỗ xe đấy nhé!'),
+    (20, 'npc-boy-idle.001', 2, N'Muốn làm shipper thì qua cửa hàng tiện lợi kia đăng ký.'),
+    (21, 'npc-girl-wave.002', 1, N'Xin chào! Thành phố này đẹp quá ha?'),
+    (22, 'npc-girl-wave.002', 2, N'Tôi đang đợi bạn trai, mà mãi chưa thấy anh ấy mang trà sữa tới.'),
+    (23, 'npc-oldman.001', 1, N'Ê chàng thanh niên! Giúp lão già này đi giao kiện hàng được không?'),
+    (24, 'npc-oldman.001', 2, N'Lão trả 100 xu tiền công, đi nhanh kẻo hỏng đồ!');
 
 -- 6. BẢNG PLAYERS
-CREATE TABLE "Players" (
-    "UserID" INT,
-    "PosX" FLOAT DEFAULT 560,
-    "PosY" FLOAT DEFAULT 50,
-    "PosZ" FLOAT DEFAULT 0,
-    "Coins" INT DEFAULT 0,
-    "UserLevel" INT DEFAULT 1,
-    PRIMARY KEY ("UserID"),
-    CONSTRAINT "FK__Players__UserID__60A75C0F" FOREIGN KEY ("UserID") REFERENCES "Users" ("UserID")
+CREATE TABLE [Players] (
+    [UserID] INT,
+    [PosX] FLOAT DEFAULT 560,
+    [PosY] FLOAT DEFAULT 50,
+    [PosZ] FLOAT DEFAULT 0,
+    [Coins] INT DEFAULT 0,
+    [UserLevel] INT DEFAULT 1,
+    PRIMARY KEY ([UserID]),
+    CONSTRAINT [FK__Players__UserID__60A75C0F] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 
-INSERT INTO "Players" ("UserID", "PosX", "PosY", "PosZ", "Coins", "UserLevel") VALUES
+INSERT INTO [Players] ([UserID], [PosX], [PosY], [PosZ], [Coins], [UserLevel]) VALUES
     (1, 345.103424072266, 0, 5.54872369766235, 3017657, 1),
     (2, 560, 0, 0, 1000000, 1),
     (6, 25.1892471313477, 0, -24.7300434112549, 96210274, 1),
     (7, 1660.97326660156, 0, -1934.18225097656, 3778, 1);
 
 -- 7. BẢNG PLAYERINVENTORY
-CREATE TABLE "PlayerInventory" (
-    "UserID" INT,
-    "ItemID" INT,
-    "Quantity" INT DEFAULT 1,
-    PRIMARY KEY ("ItemID", "UserID"),
-    CONSTRAINT "FK__PlayerInv__ItemI__25518C17" FOREIGN KEY ("ItemID") REFERENCES "Items" ("ItemID"),
-    CONSTRAINT "FK__PlayerInv__UserI__245D67DE" FOREIGN KEY ("UserID") REFERENCES "Users" ("UserID")
+CREATE TABLE [PlayerInventory] (
+    [UserID] INT,
+    [ItemID] INT,
+    [Quantity] INT DEFAULT 1,
+    PRIMARY KEY ([ItemID], [UserID]),
+    CONSTRAINT [FK__PlayerInv__ItemI__25518C17] FOREIGN KEY ([ItemID]) REFERENCES [Items] ([ItemID]),
+    CONSTRAINT [FK__PlayerInv__UserI__245D67DE] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 
-INSERT INTO "PlayerInventory" ("UserID", "ItemID", "Quantity") VALUES
+INSERT INTO [PlayerInventory] ([UserID], [ItemID], [Quantity]) VALUES
     (1, 1, 4), (1, 2, 1), (1, 3, 2), (6, 3, 2), (6, 4, 1), (1, 7, 1), 
     (6, 7, 1), (1, 9, 7), (6, 9, 2), (6, 10, 1), (6, 12, 1), (1, 16, 21), 
     (6, 16, 2), (1, 20, 4), (6, 20, 14), (1, 21, 1), (6, 21, 1), (1, 23, 1);
 
 -- 8. BẢNG SHOPITEMS
-CREATE TABLE "ShopItems" (
-    "ShopID" NVARCHAR(50),
-    "ItemID" INT,
-    "Price" INT,
-    "MinStock" INT DEFAULT 5,
-    "MaxStock" INT DEFAULT 20,
-    "CurrentStock" INT DEFAULT 10,
-    "LastRestock" DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY ("ItemID", "ShopID"),
-    CONSTRAINT "FK__ShopItems__ShopI__1CBC4616" FOREIGN KEY ("ShopID") REFERENCES "Shops" ("ShopID"),
-    CONSTRAINT "FK__ShopItems__ItemI__1DB06A4F" FOREIGN KEY ("ItemID") REFERENCES "Items" ("ItemID")
+CREATE TABLE [ShopItems] (
+    [ShopID] NVARCHAR(50),
+    [ItemID] INT,
+    [Price] INT,
+    [MinStock] INT DEFAULT 5,
+    [MaxStock] INT DEFAULT 20,
+    [CurrentStock] INT DEFAULT 10,
+    [LastRestock] DATETIME DEFAULT GETDATE(),
+    PRIMARY KEY ([ItemID], [ShopID]),
+    CONSTRAINT [FK__ShopItems__ShopI__1CBC4616] FOREIGN KEY ([ShopID]) REFERENCES [Shops] ([ShopID]),
+    CONSTRAINT [FK__ShopItems__ItemI__1DB06A4F] FOREIGN KEY ([ItemID]) REFERENCES [Items] ([ItemID])
 );
 
-INSERT INTO "ShopItems" ("ShopID", "ItemID", "Price", "MinStock", "MaxStock", "CurrentStock", "LastRestock") VALUES
+INSERT INTO [ShopItems] ([ShopID], [ItemID], [Price], [MinStock], [MaxStock], [CurrentStock], [LastRestock]) VALUES
     ('building-a.005', 1, 35000, 10, 50, 46, '2026-03-16 20:54:30.140'),
     ('building-a.006', 1, 35000, 10, 50, 10, '2026-03-16 13:47:23.103'),
     ('building-a.009', 1, 35000, 10, 50, 15, '2026-03-16 00:31:04.977'),
@@ -316,10 +303,6 @@ INSERT INTO "ShopItems" ("ShopID", "ItemID", "Price", "MinStock", "MaxStock", "C
     ('building-a.016', 10, 45000, 10, 50, 40, '2026-03-14 10:41:58.457'),
     ('building-a.020', 10, 45000, 5, 40, 7, '2026-03-16 20:36:46.193'),
     ('building-d.002', 10, 45000, 5, 40, 39, '2026-03-15 23:31:53.393'),
-    ('building-d.015', 10, 45000, 5, 40, 33, '2026-03-15 02:17:02.953'),
-    ('building-a.012', 11, 250000, 2, 15, 6, '2026-03-16 00:52:31.327'),
-    ('building-d.002', 11, 250000, 2, 15, 15, '2026-03-15 23:31:53.393'),
-    ('building-skyscraper-a.015', 11, 250000, 2, 15, 12, '2026-03-15 01:49:33.850'),
     ('building-d.002', 12, 1500000, 5, 20, 20, '2026-03-15 23:31:53.393'),
     ('building-d.015', 12, 1500000, 5, 20, 17, '2026-03-15 02:17:02.953'),
     ('building-skyscraper-a.008', 12, 1500000, 1, 5, 4, '2026-03-16 00:39:34.357'),
@@ -381,16 +364,16 @@ INSERT INTO "ShopItems" ("ShopID", "ItemID", "Price", "MinStock", "MaxStock", "C
     ('building-a.010', 23, 250000, 5, 20, 14, '2026-03-16 00:38:57.777');
 
 -- 9. BẢNG SHOPSUBSCRIBERS
-CREATE TABLE "ShopSubscribers" (
-    "ShopID" NVARCHAR(50),
-    "UserID" INT,
-    "SubscribedAt" DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY ("ShopID", "UserID"),
-    CONSTRAINT "FK__ShopSubsc__ShopI__29221CFB" FOREIGN KEY ("ShopID") REFERENCES "Shops" ("ShopID"),
-    CONSTRAINT "FK__ShopSubsc__UserI__2A164134" FOREIGN KEY ("UserID") REFERENCES "Users" ("UserID")
+CREATE TABLE [ShopSubscribers] (
+    [ShopID] NVARCHAR(50),
+    [UserID] INT,
+    [SubscribedAt] DATETIME DEFAULT GETDATE(),
+    PRIMARY KEY ([ShopID], [UserID]),
+    CONSTRAINT [FK__ShopSubsc__ShopI__29221CFB] FOREIGN KEY ([ShopID]) REFERENCES [Shops] ([ShopID]),
+    CONSTRAINT [FK__ShopSubsc__UserI__2A164134] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 
-INSERT INTO "ShopSubscribers" ("ShopID", "UserID", "SubscribedAt") VALUES
+INSERT INTO [ShopSubscribers] ([ShopID], [UserID], [SubscribedAt]) VALUES
     ('building-a.008', 1, '2026-03-11 23:17:15.700'),
     ('building-a.008', 6, '2026-03-10 13:06:09.017'),
     ('building-a.010', 1, '2026-03-10 12:57:50.807'),
@@ -415,30 +398,32 @@ INSERT INTO "ShopSubscribers" ("ShopID", "UserID", "SubscribedAt") VALUES
     ('shop-building-skyscraper-b.017', 1, '2026-03-12 02:40:29.973'),
     ('shop-building-skyscraper-b.025', 1, '2026-03-12 02:40:48.607');
 
--- 10. BẢNG ORDERS
-CREATE TABLE "Orders" (
-    "OrderID" INT,
-    "BuyerType" NVARCHAR(10),
-    "BuyerRefID" NVARCHAR(50),
-    "ItemID" INT DEFAULT NULL,
-    "ShopID" NVARCHAR(50),
-    "Status" NVARCHAR(20) DEFAULT 'PENDING',
-    "CourierID" INT DEFAULT NULL,
-    "DestX" FLOAT DEFAULT NULL,
-    "DestY" FLOAT DEFAULT NULL,
-    "DestZ" FLOAT DEFAULT NULL,
-    "Reward" INT,
-    "ItemPrice" INT,
-    "CreatedAt" DATETIME DEFAULT GETDATE(),
-    "AcceptedAt" DATETIME DEFAULT NULL,
-    "TimeoutMinutes" INT DEFAULT 5,
-    PRIMARY KEY ("OrderID"),
-    CONSTRAINT "FK__Orders__ShopID__31B762FC" FOREIGN KEY ("ShopID") REFERENCES "Shops" ("ShopID"),
-    CONSTRAINT "FK__Orders__ItemID__30C33EC3" FOREIGN KEY ("ItemID") REFERENCES "Items" ("ItemID"),
-    CONSTRAINT "FK__Orders__CourierI__339FAB6E" FOREIGN KEY ("CourierID") REFERENCES "Users" ("UserID")
+-- 10. BẢNG ORDERS (Đã thêm IDENTITY để sửa lỗi NULL OrderID)
+CREATE TABLE [Orders] (
+    [OrderID] INT PRIMARY KEY IDENTITY(1,1),
+    [BuyerType] NVARCHAR(10),
+    [BuyerRefID] NVARCHAR(50),
+    [ItemID] INT DEFAULT NULL,
+    [ShopID] NVARCHAR(50),
+    [Status] NVARCHAR(20) DEFAULT 'PENDING',
+    [CourierID] INT DEFAULT NULL,
+    [DestX] FLOAT DEFAULT NULL,
+    [DestY] FLOAT DEFAULT NULL,
+    [DestZ] FLOAT DEFAULT NULL,
+    [Reward] INT,
+    [ItemPrice] INT,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    [AcceptedAt] DATETIME DEFAULT NULL,
+    [TimeoutMinutes] INT DEFAULT 5,
+    CONSTRAINT [FK__Orders__ShopID] FOREIGN KEY ([ShopID]) REFERENCES [Shops] ([ShopID]),
+    CONSTRAINT [FK__Orders__ItemID] FOREIGN KEY ([ItemID]) REFERENCES [Items] ([ItemID]),
+    CONSTRAINT [FK__Orders__CourierID] FOREIGN KEY ([CourierID]) REFERENCES [Users] ([UserID])
 );
 
-INSERT INTO "Orders" ("OrderID", "BuyerType", "BuyerRefID", "ItemID", "ShopID", "Status", "CourierID", "DestX", "DestY", "DestZ", "Reward", "ItemPrice", "CreatedAt", "AcceptedAt", "TimeoutMinutes") VALUES
+-- Cho phép nạp dữ liệu có sẵn vào cột IDENTITY
+SET IDENTITY_INSERT [Orders] ON;
+
+INSERT INTO [Orders] ([OrderID], [BuyerType], [BuyerRefID], [ItemID], [ShopID], [Status], [CourierID], [DestX], [DestY], [DestZ], [Reward], [ItemPrice], [CreatedAt], [AcceptedAt], [TimeoutMinutes]) VALUES
     (1, 'NPC', 'npc_auto_1773489651519', 12, 'building-skyscraper-a.015', 'TIMEOUT', NULL, 317.710815429687, 0, -1041.23156738281, 150129, 1500000, '2026-03-14 19:00:51.610', '2026-03-14 19:15:47.840', 5),
     (2, 'NPC', 'npc_auto_1773489702771', 21, 'building-a.014', 'PENDING', NULL, 1764.30090332031, 0, -1050.53503417969, 15232, 150000, '2026-03-14 19:01:42.777', NULL, 5),
     (3, 'NPC', 'npc_auto_1773489849526', 7, 'building-a.006', 'TIMEOUT', NULL, 653.991882324219, 0, -1041.94555664062, 1143, 10000, '2026-03-14 19:04:09.577', '2026-03-14 19:44:00.703', 5),
@@ -528,133 +513,138 @@ INSERT INTO "Orders" ("OrderID", "BuyerType", "BuyerRefID", "ItemID", "ShopID", 
     (87, 'NPC', 'npc_auto_1773669759286', 7, 'building-a.027', 'PENDING', NULL, 74.1779022216797, 0, -1358.97619628906, 1161, 10000, '2026-03-16 21:02:39.297', NULL, 5),
     (88, 'PLAYER', '1', 9, 'building-a.014', 'CANCELLED', NULL, 345.103424072266, 0, 5.54872369766235, 8054, 80000, '2026-03-16 21:03:04.803', NULL, 5);
 
--- 11. BẢNG TRANSACTIONLOG
-CREATE TABLE "TransactionLog" (
-    "LogID" INT,
-    "UserID" INT DEFAULT NULL,
-    "Type" NVARCHAR(20),
-    "Amount" INT,
-    "BalanceAfter" INT,
-    "Reason" NVARCHAR(255) DEFAULT NULL,
-    "CreatedAt" DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY ("LogID"),
-    CONSTRAINT "FK__Transacti__UserI__0A9D95DB" FOREIGN KEY ("UserID") REFERENCES "Users" ("UserID")
+-- Tắt nạp IDENTITY để hệ thống tự tăng cho đơn sau
+SET IDENTITY_INSERT [Orders] OFF;
+
+-- 11. BẢNG TRANSACTIONLOG (Đã thêm IDENTITY để tránh lỗi NULL LogID)
+CREATE TABLE [TransactionLog] (
+    [LogID] INT PRIMARY KEY IDENTITY(0,1),
+    [UserID] INT DEFAULT NULL,
+    [Type] NVARCHAR(20),
+    [Amount] INT,
+    [BalanceAfter] INT,
+    [Reason] NVARCHAR(255) DEFAULT NULL,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    CONSTRAINT [FK__TransactionLog__UserID] FOREIGN KEY ([UserID]) REFERENCES [Users] ([UserID])
 );
 
-INSERT INTO "TransactionLog" ("LogID", "UserID", "Type", "Amount", "BalanceAfter", "Reason", "CreatedAt") VALUES
-    (0, 1, 'PENALTY', -5, -5, 'Timeout đơn #2', '2026-03-06 22:45:08.760'),
-    (1, 1, 'BUY', -80000, 9920010, 'Mua ItemID=9', '2026-03-10 11:28:47.280'),
-    (2, 1, 'BUY', -80000, 9840010, 'Mua ItemID=9', '2026-03-10 11:29:11.293'),
-    (3, 1, 'BUY', -80000, 9760010, 'Mua ItemID=9', '2026-03-10 11:29:13.323'),
-    (4, 1, 'BUY', -120000, 9640010, 'Mua ItemID=16', '2026-03-10 11:29:47.630'),
-    (5, 1, 'PENALTY', -13509, 9626501, 'Timeout đơn #23', '2026-03-10 11:34:27.663'),
-    (6, 6, 'BUY', -80000, 99949084, 'Mua ItemID=9', '2026-03-10 11:45:21.210'),
-    (7, 6, 'BUY', -50000, 99899084, 'Mua ItemID=20', '2026-03-10 11:47:32.260'),
-    (8, 6, 'BUY', -50000, 99849084, 'Mua ItemID=20', '2026-03-10 11:47:33.947'),
-    (9, 6, 'BUY', -50000, 99799084, 'Mua ItemID=20', '2026-03-10 11:47:34.733'),
-    (10, 6, 'BUY', -50000, 99749084, 'Mua ItemID=20', '2026-03-10 11:47:35.010'),
-    (11, 6, 'BUY', -50000, 99699084, 'Mua ItemID=20', '2026-03-10 11:47:35.177'),
-    (12, 6, 'BUY', -50000, 99649084, 'Mua ItemID=20', '2026-03-10 11:47:35.367'),
-    (13, 6, 'BUY', -50000, 99599084, 'Mua ItemID=20', '2026-03-10 11:47:35.777'),
-    (14, 6, 'BUY', -50000, 99549084, 'Mua ItemID=20', '2026-03-10 11:47:35.997'),
-    (15, 6, 'BUY', -50000, 99499084, 'Mua ItemID=20', '2026-03-10 11:47:36.353'),
-    (16, 6, 'BUY', -50000, 99449084, 'Mua ItemID=20', '2026-03-10 11:47:36.603'),
-    (17, 6, 'BUY', -50000, 99399084, 'Mua ItemID=20', '2026-03-10 11:47:36.827'),
-    (18, 6, 'BUY', -50000, 99349084, 'Mua ItemID=20', '2026-03-10 11:47:37.190'),
-    (19, 6, 'BUY', -50000, 99299084, 'Mua ItemID=20', '2026-03-10 11:47:37.550'),
-    (20, 1, 'BUY', -120000, 9506501, 'Mua ItemID=16', '2026-03-10 11:48:02.377'),
-    (21, 1, 'BUY', -120000, 9386501, 'Mua ItemID=16', '2026-03-10 11:48:03.553'),
-    (22, 1, 'BUY', -120000, 9266501, 'Mua ItemID=16', '2026-03-10 11:48:04.700'),
-    (23, 1, 'BUY', -120000, 9146501, 'Mua ItemID=16', '2026-03-10 11:48:05.647'),
-    (24, 1, 'BUY', -120000, 9026501, 'Mua ItemID=16', '2026-03-10 11:48:06.080'),
-    (25, 1, 'BUY', -120000, 8906501, 'Mua ItemID=16', '2026-03-10 11:48:06.377'),
-    (26, 1, 'BUY', -120000, 8786501, 'Mua ItemID=16', '2026-03-10 11:48:06.610'),
-    (27, 1, 'BUY', -80000, 8706501, 'Mua ItemID=9', '2026-03-10 12:26:30.967'),
-    (28, 1, 'BUY', -20000, 8686501, 'Mua ItemID=3', '2026-03-10 12:37:18.453'),
-    (29, 6, 'PENALTY', -24004, 99275080, 'Timeout đơn #39', '2026-03-10 12:43:08.940'),
-    (30, 1, 'BUY', -120000, 8566501, 'Mua ItemID=16', '2026-03-10 12:56:27.050'),
-    (31, 1, 'BUY', -50000, 8516501, 'Mua ItemID=20', '2026-03-10 12:56:29.267'),
-    (32, 1, 'BUY', -50000, 8466501, 'Mua ItemID=20', '2026-03-10 12:56:30.630'),
-    (33, 1, 'BUY', -50000, 8416501, 'Mua ItemID=20', '2026-03-10 12:56:30.847'),
-    (34, 1, 'BUY', -50000, 8366501, 'Mua ItemID=20', '2026-03-10 12:56:31.040'),
-    (35, 1, 'BUY', -250000, 8116501, 'Mua ItemID=23', '2026-03-10 12:57:54.407'),
-    (36, 1, 'BUY', -150000, 7966501, 'Mua ItemID=21', '2026-03-10 13:04:28.983'),
-    (37, 6, 'DELIVERY_REWARD', 40020, 99315100, 'Giao đơn #63', '2026-03-10 13:16:42.523'),
-    (38, 1, 'REMOTE_ORDER_PAYMENT', -120020, 7846481, 'Thanh toán đơn #63', '2026-03-10 13:16:42.537'),
-    (39, 1, 'DELIVERY_REWARD', 5056, 7851537, 'Giao đơn #67', '2026-03-10 13:50:30.150'),
-    (40, 6, 'REMOTE_ORDER_PAYMENT', -55056, 99260044, 'Thanh toán đơn #67', '2026-03-10 13:50:30.160'),
-    (41, 1, 'PENALTY', -1621, 7849916, 'Timeout đơn #68', '2026-03-10 14:18:16.570'),
-    (42, 1, 'PENALTY', -3011, 7846905, 'Timeout đơn #69', '2026-03-10 18:08:35.370'),
-    (43, 1, 'PENALTY', -3011, 7843894, 'Timeout đơn #73', '2026-03-10 18:25:46.850'),
-    (44, 1, 'PENALTY', -1011, 7842883, 'Timeout đơn #96', '2026-03-10 18:44:46.980'),
-    (45, 1, 'PENALTY', -911, 7841972, 'Timeout đơn #90', '2026-03-10 18:55:09.947'),
-    (46, 1, 'PENALTY', -455, 7841517, 'Hủy đơn #100', '2026-03-10 19:00:05.420'),
-    (47, 1, 'PENALTY', -1610, 7839907, 'Timeout đơn #75', '2026-03-10 20:07:22.027'),
-    (48, 1, 'PENALTY', -911, 7838996, 'Timeout đơn #100', '2026-03-11 18:54:27.283'),
-    (49, 1, 'BUY', -20000, 7818996, 'Mua ItemID=3', '2026-03-11 19:08:05.247'),
-    (50, 1, 'PENALTY', -911, 7818085, 'Timeout đơn #103', '2026-03-11 19:12:59.963'),
-    (51, 1, 'PENALTY', -3011, 7815074, 'Timeout đơn #105', '2026-03-11 20:41:02.290'),
-    (52, 1, 'PENALTY', -911, 7814163, 'Timeout đơn #120', '2026-03-11 21:12:25.027'),
-    (53, 1, 'BUY', -80000, 7734163, 'Mua ItemID=9', '2026-03-11 23:17:18.067'),
-    (54, 1, 'PENALTY', -419, 7733744, 'Timeout đơn #88', '2026-03-12 00:04:47.460'),
-    (55, 6, 'PENALTY', -916, 99259128, 'Timeout đơn #211', '2026-03-12 01:20:38.020'),
-    (56, 1, 'PENALTY', -4014, 7729730, 'Timeout đơn #227', '2026-03-12 01:22:38.060'),
-    (57, 1, 'PENALTY', -1619, 7728111, 'Timeout đơn #233', '2026-03-12 02:49:45.510'),
-    (58, 6, 'BUY', -80000, 99179128, 'Mua ItemID=9', '2026-03-12 03:13:37.177'),
-    (59, 1, 'PENALTY', -1327, 7726784, 'Timeout đơn #275', '2026-03-12 03:15:11.930'),
-    (60, 6, 'PENALTY', -1726, 99177402, 'Timeout đơn #276', '2026-03-12 03:19:16.343'),
-    (61, 6, 'PENALTY', -1606, 99175796, 'Timeout đơn #273', '2026-03-12 03:28:36.690'),
-    (62, 1, 'PENALTY', -924, 7725860, 'Timeout đơn #282', '2026-03-12 03:36:52.003'),
-    (63, 1, 'PENALTY', -437, 7725423, 'Timeout đơn #180', '2026-03-12 03:43:19.160'),
-    (64, 6, 'PENALTY', -927, 99174869, 'Timeout đơn #286', '2026-03-12 03:46:22.273'),
-    (65, 6, 'PENALTY', -332, 99174537, 'Timeout đơn #291', '2026-03-12 03:57:42.620'),
-    (66, 1, 'PENALTY', -1637, 7723786, 'Timeout đơn #153', '2026-03-12 04:09:02.997'),
-    (67, 1, 'PENALTY', -240018, 7483768, 'Timeout đơn #271', '2026-03-12 04:15:06.830'),
-    (68, 6, 'PENALTY', -3019, 99171518, 'Timeout đơn #285', '2026-03-12 04:18:57.993'),
-    (69, 6, 'PENALTY', -913, 99170605, 'Timeout đơn #293', '2026-03-12 04:27:23.460'),
-    (70, 6, 'PENALTY', -223, 99170382, 'Timeout đơn #106', '2026-03-12 04:33:41.593'),
-    (71, 6, 'PENALTY', -915, 99169467, 'Timeout đơn #289', '2026-03-12 04:39:09.150'),
-    (72, 1, 'PENALTY', -1626, 7482142, 'Timeout đơn #131', '2026-03-12 04:49:58.100'),
-    (73, 1, 'PENALTY', -413, 7481729, 'Timeout đơn #288', '2026-03-12 19:49:26.960'),
-    (74, 1, 'BUY', -200000, 7281729, 'Mua ItemID=16', '2026-03-12 19:51:35.657'),
-    (75, 1, 'PENALTY', -218, 7281511, 'Timeout đơn #167', '2026-03-12 20:07:27.983'),
-    (76, 6, 'PENALTY', -1612, 99167855, 'Timeout đơn #311', '2026-03-12 20:18:51.267'),
-    (77, 6, 'PENALTY', -1325, 99166530, 'Timeout đơn #314', '2026-03-12 22:23:23.413'),
-    (78, 1, 'PENALTY', -232, 7281279, 'Timeout đơn #94', '2026-03-12 22:32:30.857'),
-    (79, 1, 'PENALTY', -750005, 6531274, 'Timeout đơn #36', '2026-03-12 22:47:24.743'),
-    (80, 1, 'PENALTY', -4016, 6527258, 'Timeout đơn #229', '2026-03-12 22:54:28.730'),
-    (81, 6, 'PENALTY', -2420, 99164110, 'Timeout đơn #330', '2026-03-12 23:07:31.117'),
-    (82, 6, 'PENALTY', -3032, 99161078, 'Timeout đơn #335', '2026-03-12 23:16:28.327'),
-    (83, 1, 'PENALTY', -2439, 6524819, 'Timeout đơn #263', '2026-03-12 23:26:04.130'),
-    (84, 1, 'PENALTY', -3038, 6521781, 'Timeout đơn #139', '2026-03-12 23:32:46.910'),
-    (85, 6, 'PENALTY', -512, 99160566, 'Hủy đơn #350', '2026-03-12 23:49:46.610'),
-    (86, 1, 'PENALTY', -1209, 6520572, 'Hủy đơn #360', '2026-03-13 00:13:41.250'),
-    (87, 1, 'PENALTY', -119, 6520453, 'Hủy đơn #362', '2026-03-13 00:13:47.007'),
-    (88, 1, 'PENALTY', -1621, 6518832, 'Timeout đơn #368', '2026-03-13 12:57:27.023'),
-    (89, 1, 'PENALTY', -510, 6518322, 'Hủy đơn #370', '2026-03-13 13:02:57.990'),
-    (90, 1, 'PENALTY', -2420, 6515902, 'Timeout đơn #373', '2026-03-13 13:17:47.060'),
-    (91, 1, 'PENALTY', -1510, 6514392, 'Hủy đơn #380', '2026-03-13 13:23:14.753'),
-    (92, 1, 'PENALTY', -3020, 6511372, 'Timeout đơn #378', '2026-03-13 13:29:18.110'),
-    (93, 1, 'PENALTY', -25009, 6486363, 'Há»§y Ä‘Æ¡n #85', '2026-03-13 14:11:35.173'),
-    (94, 1, 'PENALTY', -920, 6485443, 'Timeout Ä‘Æ¡n #399', '2026-03-13 14:17:51.890'),
-    (95, 6, 'PENALTY', -2420, 99158146, 'Timeout Ä‘Æ¡n #406', '2026-03-13 14:54:51.570'),
-    (96, 1, 'PENALTY', -1620, 6483823, 'Timeout Ä‘Æ¡n #424', '2026-03-13 15:54:17.720'),
-    (97, 1, 'PENALTY', -920, 6482903, 'Timeout Ä‘Æ¡n #433', '2026-03-13 16:08:50.133'),
-    (98, 1, 'PENALTY', -1020, 6481883, 'Timeout Ä‘Æ¡n #442', '2026-03-13 16:28:56.330'),
-    (99, 1, 'PENALTY', -3020, 6478863, 'Timeout Ä‘Æ¡n #447', '2026-03-13 16:37:56.727'),
-    (100, 1, 'PENALTY', -1620, 6477243, 'Timeout Ä‘Æ¡n #456', '2026-03-13 16:57:39.983'),
-    (101, 1, 'PENALTY', -1620, 6475623, 'Timeout Ä‘Æ¡n #464', '2026-03-13 17:09:40.460'),
-    (102, 1, 'PENALTY', -810, 6474813, 'Há»§y Ä‘Æ¡n #471', '2026-03-13 18:29:48.010'),
-    (103, 1, 'PENALTY', -920, 6473893, 'Timeout Ä‘Æ¡n #476', '2026-03-13 18:36:39.290'),
-    (104, 1, 'PENALTY', -460, 6473433, 'Há»§y Ä‘Æ¡n #488', '2026-03-13 18:57:56.730'),
-    (105, 1, 'PENALTY', -1619, 6471814, 'Timeout Ä‘Æ¡n #498', '2026-03-13 19:38:56.380'),
-    (106, 1, 'PENALTY', -2419, 6469395, 'Timeout Ä‘Æ¡n #535', '2026-03-13 21:19:12.837'),
-    (107, 1, 'PENALTY', -919, 6468476, 'Timeout Ä‘Æ¡n #537', '2026-03-13 21:29:51.170'),
-    (108, 1, 'PENALTY', -1619, 6466857, 'Timeout Ä‘Æ¡n #547', '2026-03-13 21:52:02.917'),
-    (109, 1, 'PENALTY', -460, 6466397, 'Há»§y Ä‘Æ¡n #552', '2026-03-13 21:59:19.723'),
-    (110, 1, 'DELIVERY_REWARD', 15110, 6481507, 'Giao Ä‘Æ¡n #563', '2026-03-13 22:33:24.507'),
-    (111, 6, 'REMOTE_ORDER_PAYMENT', -165110, 98993036, 'Thanh toĂ¡n Ä‘Æ¡n #563', '2026-03-13 22:33:24.527'),
-    (112, 1, 'DELIVERY_REWARD', 4603, 6486110, 'Giao đơn #581', '2026-03-13 23:35:14.820'),
+-- Bật quyền chèn vào cột IDENTITY
+SET IDENTITY_INSERT [TransactionLog] ON;
+
+INSERT INTO [TransactionLog] ([LogID], [UserID], [Type], [Amount], [BalanceAfter], [Reason], [CreatedAt]) VALUES
+    (0, 1, 'PENALTY', -5, -5, N'Timeout đơn #2', '2026-03-06 22:45:08.760'),
+    (1, 1, 'BUY', -80000, 9920010, N'Mua ItemID=9', '2026-03-10 11:28:47.280'),
+    (2, 1, 'BUY', -80000, 9840010, N'Mua ItemID=9', '2026-03-10 11:29:11.293'),
+    (3, 1, 'BUY', -80000, 9760010, N'Mua ItemID=9', '2026-03-10 11:29:13.323'),
+    (4, 1, 'BUY', -120000, 9640010, N'Mua ItemID=16', '2026-03-10 11:29:47.630'),
+    (5, 1, 'PENALTY', -13509, 9626501, N'Timeout đơn #23', '2026-03-10 11:34:27.663'),
+    (6, 6, 'BUY', -80000, 99949084, N'Mua ItemID=9', '2026-03-10 11:45:21.210'),
+    (7, 6, 'BUY', -50000, 99899084, N'Mua ItemID=20', '2026-03-10 11:47:32.260'),
+    (8, 6, 'BUY', -50000, 99849084, N'Mua ItemID=20', '2026-03-10 11:47:33.947'),
+    (9, 6, 'BUY', -50000, 99799084, N'Mua ItemID=20', '2026-03-10 11:47:34.733'),
+    (10, 6, 'BUY', -50000, 99749084, N'Mua ItemID=20', '2026-03-10 11:47:35.010'),
+    (11, 6, 'BUY', -50000, 99699084, N'Mua ItemID=20', '2026-03-10 11:47:35.177'),
+    (12, 6, 'BUY', -50000, 99649084, N'Mua ItemID=20', '2026-03-10 11:47:35.367'),
+    (13, 6, 'BUY', -50000, 99599084, N'Mua ItemID=20', '2026-03-10 11:47:35.777'),
+    (14, 6, 'BUY', -50000, 99549084, N'Mua ItemID=20', '2026-03-10 11:47:35.997'),
+    (15, 6, 'BUY', -50000, 99499084, N'Mua ItemID=20', '2026-03-10 11:47:36.353'),
+    (16, 6, 'BUY', -50000, 99449084, N'Mua ItemID=20', '2026-03-10 11:47:36.603'),
+    (17, 6, 'BUY', -50000, 99399084, N'Mua ItemID=20', '2026-03-10 11:47:36.827'),
+    (18, 6, 'BUY', -50000, 99349084, N'Mua ItemID=20', '2026-03-10 11:47:37.190'),
+    (19, 6, 'BUY', -50000, 99299084, N'Mua ItemID=20', '2026-03-10 11:47:37.550'),
+    (20, 1, 'BUY', -120000, 9506501, N'Mua ItemID=16', '2026-03-10 11:48:02.377'),
+    (21, 1, 'BUY', -120000, 9386501, N'Mua ItemID=16', '2026-03-10 11:48:03.553'),
+    (22, 1, 'BUY', -120000, 9266501, N'Mua ItemID=16', '2026-03-10 11:48:04.700'),
+    (23, 1, 'BUY', -120000, 9146501, N'Mua ItemID=16', '2026-03-10 11:48:05.647'),
+    (24, 1, 'BUY', -120000, 9026501, N'Mua ItemID=16', '2026-03-10 11:48:06.080'),
+    (25, 1, 'BUY', -120000, 8906501, N'Mua ItemID=16', '2026-03-10 11:48:06.377'),
+    (26, 1, 'BUY', -120000, 8786501, N'Mua ItemID=16', '2026-03-10 11:48:06.610'),
+    (27, 1, 'BUY', -80000, 8706501, N'Mua ItemID=9', '2026-03-10 12:26:30.967'),
+    (28, 1, 'BUY', -20000, 8686501, N'Mua ItemID=3', '2026-03-10 12:37:18.453'),
+    (29, 6, 'PENALTY', -24004, 99275080, N'Timeout đơn #39', '2026-03-10 12:43:08.940'),
+    (30, 1, 'BUY', -120000, 8566501, N'Mua ItemID=16', '2026-03-10 12:56:27.050'),
+    (31, 1, 'BUY', -50000, 8516501, N'Mua ItemID=20', '2026-03-10 12:56:29.267'),
+    (32, 1, 'BUY', -50000, 8466501, N'Mua ItemID=20', '2026-03-10 12:56:30.630'),
+    (33, 1, 'BUY', -50000, 8416501, N'Mua ItemID=20', '2026-03-10 12:56:30.847'),
+    (34, 1, 'BUY', -50000, 8366501, N'Mua ItemID=20', '2026-03-10 12:56:31.040'),
+    (35, 1, 'BUY', -250000, 8116501, N'Mua ItemID=23', '2026-03-10 12:57:54.407'),
+    (36, 1, 'BUY', -150000, 7966501, N'Mua ItemID=21', '2026-03-10 13:04:28.983'),
+    (37, 6, 'DELIVERY_REWARD', 40020, 99315100, N'Giao đơn #63', '2026-03-10 13:16:42.523'),
+    (38, 1, 'REMOTE_ORDER_PAYMENT', -120020, 7846481, N'Thanh toán đơn #63', '2026-03-10 13:16:42.537'),
+    (39, 1, 'DELIVERY_REWARD', 5056, 7851537, N'Giao đơn #67', '2026-03-10 13:50:30.150'),
+    (40, 6, 'REMOTE_ORDER_PAYMENT', -55056, 99260044, N'Thanh toán đơn #67', '2026-03-10 13:50:30.160'),
+    (41, 1, 'PENALTY', -1621, 7849916, N'Timeout đơn #68', '2026-03-10 14:18:16.570'),
+    (42, 1, 'PENALTY', -3011, 7846905, N'Timeout đơn #69', '2026-03-10 18:08:35.370'),
+    (43, 1, 'PENALTY', -3011, 7843894, N'Timeout đơn #73', '2026-03-10 18:25:46.850'),
+    (44, 1, 'PENALTY', -1011, 7842883, N'Timeout đơn #96', '2026-03-10 18:44:46.980'),
+    (45, 1, 'PENALTY', -911, 7841972, N'Timeout đơn #90', '2026-03-10 18:55:09.947'),
+    (46, 1, 'PENALTY', -455, 7841517, N'Hủy đơn #100', '2026-03-10 19:00:05.420'),
+    (47, 1, 'PENALTY', -1610, 7839907, N'Timeout đơn #75', '2026-03-10 20:07:22.027'),
+    (48, 1, 'PENALTY', -911, 7838996, N'Timeout đơn #100', '2026-03-11 18:54:27.283'),
+    (49, 1, 'BUY', -20000, 7818996, N'Mua ItemID=3', '2026-03-11 19:08:05.247'),
+    (50, 1, 'PENALTY', -911, 7818085, N'Timeout đơn #103', '2026-03-11 19:12:59.963'),
+    (51, 1, 'PENALTY', -3011, 7815074, N'Timeout đơn #105', '2026-03-11 20:41:02.290'),
+    (52, 1, 'PENALTY', -911, 7814163, N'Timeout đơn #120', '2026-03-11 21:12:25.027'),
+    (53, 1, 'BUY', -80000, 7734163, N'Mua ItemID=9', '2026-03-11 23:17:18.067'),
+    (54, 1, 'PENALTY', -419, 7733744, N'Timeout đơn #88', '2026-03-12 00:04:47.460'),
+    (55, 6, 'PENALTY', -916, 99259128, N'Timeout đơn #211', '2026-03-12 01:20:38.020'),
+    (56, 1, 'PENALTY', -4014, 7729730, N'Timeout đơn #227', '2026-03-12 01:22:38.060'),
+    (57, 1, 'PENALTY', -1619, 7728111, N'Timeout đơn #233', '2026-03-12 02:49:45.510'),
+    (58, 6, 'BUY', -80000, 99179128, N'Mua ItemID=9', '2026-03-12 03:13:37.177'),
+    (59, 1, 'PENALTY', -1327, 7726784, N'Timeout đơn #275', '2026-03-12 03:15:11.930'),
+    (60, 6, 'PENALTY', -1726, 99177402, N'Timeout đơn #276', '2026-03-12 03:19:16.343'),
+    (61, 6, 'PENALTY', -1606, 99175796, N'Timeout đơn #273', '2026-03-12 03:28:36.690'),
+    (62, 1, 'PENALTY', -924, 7725860, N'Timeout đơn #282', '2026-03-12 03:36:52.003'),
+    (63, 1, 'PENALTY', -437, 7725423, N'Timeout đơn #180', '2026-03-12 03:43:19.160'),
+    (64, 6, 'PENALTY', -927, 99174869, N'Timeout đơn #286', '2026-03-12 03:46:22.273'),
+    (65, 6, 'PENALTY', -332, 99174537, N'Timeout đơn #291', '2026-03-12 03:57:42.620'),
+    (66, 1, 'PENALTY', -1637, 7723786, N'Timeout đơn #153', '2026-03-12 04:09:02.997'),
+    (67, 1, 'PENALTY', -240018, 7483768, N'Timeout đơn #271', '2026-03-12 04:15:06.830'),
+    (68, 6, 'PENALTY', -3019, 99171518, N'Timeout đơn #285', '2026-03-12 04:18:57.993'),
+    (69, 6, 'PENALTY', -913, 99170605, N'Timeout đơn #293', '2026-03-12 04:27:23.460'),
+    (70, 6, 'PENALTY', -223, 99170382, N'Timeout đơn #106', '2026-03-12 04:33:41.593'),
+    (71, 6, 'PENALTY', -915, 99169467, N'Timeout đơn #289', '2026-03-12 04:39:09.150'),
+    (72, 1, 'PENALTY', -1626, 7482142, N'Timeout đơn #131', '2026-03-12 04:49:58.100'),
+    (73, 1, 'PENALTY', -413, 7481729, N'Timeout đơn #288', '2026-03-12 19:49:26.960'),
+    (74, 1, 'BUY', -200000, 7281729, N'Mua ItemID=16', '2026-03-12 19:51:35.657'),
+    (75, 1, 'PENALTY', -218, 7281511, N'Timeout đơn #167', '2026-03-12 20:07:27.983'),
+    (76, 6, 'PENALTY', -1612, 99167855, N'Timeout đơn #311', '2026-03-12 20:18:51.267'),
+    (77, 6, 'PENALTY', -1325, 99166530, N'Timeout đơn #314', '2026-03-12 22:23:23.413'),
+    (78, 1, 'PENALTY', -232, 7281279, N'Timeout đơn #94', '2026-03-12 22:32:30.857'),
+    (79, 1, 'PENALTY', -750005, 6531274, N'Timeout đơn #36', '2026-03-12 22:47:24.743'),
+    (80, 1, 'PENALTY', -4016, 6527258, N'Timeout đơn #229', '2026-03-12 22:54:28.730'),
+    (81, 6, 'PENALTY', -2420, 99164110, N'Timeout đơn #330', '2026-03-12 23:07:31.117'),
+    (82, 6, 'PENALTY', -3032, 99161078, N'Timeout đơn #335', '2026-03-12 23:16:28.327'),
+    (83, 1, 'PENALTY', -2439, 6524819, N'Timeout đơn #263', '2026-03-12 23:26:04.130'),
+    (84, 1, 'PENALTY', -3038, 6521781, N'Timeout đơn #139', '2026-03-12 23:32:46.910'),
+    (85, 6, 'PENALTY', -512, 99160566, N'Hủy đơn #350', '2026-03-12 23:49:46.610'),
+    (86, 1, 'PENALTY', -1209, 6520572, N'Hủy đơn #360', '2026-03-13 00:13:41.250'),
+    (87, 1, 'PENALTY', -119, 6520453, N'Hủy đơn #362', '2026-03-13 00:13:47.007'),
+    (88, 1, 'PENALTY', -1621, 6518832, N'Timeout đơn #368', '2026-03-13 12:57:27.023'),
+    (89, 1, 'PENALTY', -510, 6518322, N'Hủy đơn #370', '2026-03-13 13:02:57.990'),
+    (90, 1, 'PENALTY', -2420, 6515902, N'Timeout đơn #373', '2026-03-13 13:17:47.060'),
+    (91, 1, 'PENALTY', -1510, 6514392, N'Hủy đơn #380', '2026-03-13 13:23:14.753'),
+    (92, 1, 'PENALTY', -3020, 6511372, N'Timeout đơn #378', '2026-03-13 13:29:18.110'),
+    (93, 1, 'PENALTY', -25009, 6486363, N'Hủy đơn #85', '2026-03-13 14:11:35.173'),
+    (94, 1, 'PENALTY', -920, 6485443, N'Timeout đơn #399', '2026-03-13 14:17:51.890'),
+    (95, 6, 'PENALTY', -2420, 99158146, N'Timeout đơn #406', '2026-03-13 14:54:51.570'),
+    (96, 1, 'PENALTY', -1620, 6483823, N'Timeout đơn #424', '2026-03-13 15:54:17.720'),
+    (97, 1, 'PENALTY', -920, 6482903, N'Timeout đơn #433', '2026-03-13 16:08:50.133'),
+    (98, 1, 'PENALTY', -1020, 6481883, N'Timeout đơn #442', '2026-03-13 16:28:56.330'),
+    (99, 1, 'PENALTY', -3020, 6478863, N'Timeout đơn #447', '2026-03-13 16:37:56.727'),
+    (100, 1, 'PENALTY', -1620, 6477243, N'Timeout đơn #456', '2026-03-13 16:57:39.983'),
+    (101, 1, 'PENALTY', -1620, 6475623, N'Timeout đơn #464', '2026-03-13 17:09:40.460'),
+    (102, 1, 'PENALTY', -810, 6474813, N'Hủy đơn #471', '2026-03-13 18:29:48.010'),
+    (103, 1, 'PENALTY', -920, 6473893, N'Timeout đơn #476', '2026-03-13 18:36:39.290'),
+    (104, 1, 'PENALTY', -460, 6473433, N'Hủy đơn #488', '2026-03-13 18:57:56.730'),
+    (105, 1, 'PENALTY', -1619, 6471814, N'Timeout đơn #498', '2026-03-13 19:38:56.380'),
+    (106, 1, 'PENALTY', -2419, 6469395, N'Timeout đơn #535', '2026-03-13 21:19:12.837'),
+    (107, 1, 'PENALTY', -919, 6468476, N'Timeout đơn #537', '2026-03-13 21:29:51.170'),
+    (108, 1, 'PENALTY', -1619, 6466857, N'Timeout đơn #547', '2026-03-13 21:52:02.917'),
+    (109, 1, 'PENALTY', -460, 6466397, N'Hủy đơn #552', '2026-03-13 21:59:19.723'),
+    (110, 1, 'DELIVERY_REWARD', 15110, 6481507, N'Giao đơn #563', '2026-03-13 22:33:24.507'),
+    (111, 6, 'REMOTE_ORDER_PAYMENT', -165110, 98993036, N'Thanh toán đơn #563', '2026-03-13 22:33:24.527'),
+    (112, 1, 'DELIVERY_REWARD', 4603, 6486110, N'Giao đơn #581', '2026-03-13 23:35:14.820'),
     (113, 1, 'PENALTY', -513, 6485597, 'Cancellation Penalty - Order #458', '2026-03-14 11:31:45.823'),
     (114, 1, 'PENALTY', -921, 6484676, 'Timeout Penalty - Order #121', '2026-03-14 16:57:52.680'),
     (115, 1, 'PENALTY', -111, 6484565, 'Cancellation Penalty - Order #309', '2026-03-14 16:59:37.590'),
@@ -705,34 +695,34 @@ INSERT INTO "TransactionLog" ("LogID", "UserID", "Type", "Amount", "BalanceAfter
     (160, 1, 'PENALTY', -1516, 5735173, 'Cancellation Penalty - Order #4', '2026-03-14 19:43:57.550'),
     (161, 1, 'PENALTY', -228, 5734945, 'Timeout Penalty - Order #3', '2026-03-14 19:56:37.820'),
     (162, 1, 'PENALTY', -17041, 5717904, 'Timeout Penalty - Order #6', '2026-03-14 20:20:16.700'),
-    (163, 1, 'BUY', -250000, 5467904, 'Mua ItemID=2', '2026-03-14 20:21:14.480'),
-    (164, 1, 'BUY', -200000, 5267904, 'Mua ItemID=16', '2026-03-14 20:21:19.083'),
-    (165, 1, 'BUY', -200000, 5067904, 'Mua ItemID=16', '2026-03-14 20:21:23.093'),
-    (166, 1, 'BUY', -200000, 4867904, 'Mua ItemID=16', '2026-03-14 20:21:23.673'),
-    (167, 1, 'BUY', -200000, 4667904, 'Mua ItemID=16', '2026-03-14 20:21:24.120'),
-    (168, 1, 'BUY', -200000, 4467904, 'Mua ItemID=16', '2026-03-14 20:21:24.350'),
-    (169, 1, 'BUY', -200000, 4267904, 'Mua ItemID=16', '2026-03-14 20:21:24.570'),
-    (170, 1, 'BUY', -200000, 4067904, 'Mua ItemID=16', '2026-03-14 20:21:24.783'),
-    (171, 1, 'BUY', -200000, 3867904, 'Mua ItemID=16', '2026-03-14 20:21:24.993'),
-    (172, 1, 'BUY', -200000, 3667904, 'Mua ItemID=16', '2026-03-14 20:21:25.203'),
+    (163, 1, 'BUY', -250000, 5467904, N'Mua ItemID=2', '2026-03-14 20:21:14.480'),
+    (164, 1, 'BUY', -200000, 5267904, N'Mua ItemID=16', '2026-03-14 20:21:19.083'),
+    (165, 1, 'BUY', -200000, 5067904, N'Mua ItemID=16', '2026-03-14 20:21:23.093'),
+    (166, 1, 'BUY', -200000, 4867904, N'Mua ItemID=16', '2026-03-14 20:21:23.673'),
+    (167, 1, 'BUY', -200000, 4667904, N'Mua ItemID=16', '2026-03-14 20:21:24.120'),
+    (168, 1, 'BUY', -200000, 4467904, N'Mua ItemID=16', '2026-03-14 20:21:24.350'),
+    (169, 1, 'BUY', -200000, 4267904, N'Mua ItemID=16', '2026-03-14 20:21:24.570'),
+    (170, 1, 'BUY', -200000, 4067904, N'Mua ItemID=16', '2026-03-14 20:21:24.783'),
+    (171, 1, 'BUY', -200000, 3867904, N'Mua ItemID=16', '2026-03-14 20:21:24.993'),
+    (172, 1, 'BUY', -200000, 3667904, N'Mua ItemID=16', '2026-03-14 20:21:25.203'),
     (173, 1, 'PENALTY', -1523, 3666381, 'Cancellation Penalty - Order #2', '2026-03-14 20:21:32.883'),
-    (174, 1, 'BUY', -200000, 3466381, 'Mua ItemID=16', '2026-03-14 20:21:34.903'),
-    (175, 1, 'BUY', -35000, 3431381, 'Mua ItemID=1', '2026-03-14 20:21:40.050'),
-    (176, 1, 'BUY', -35000, 3396381, 'Mua ItemID=1', '2026-03-14 20:21:40.623'),
-    (177, 1, 'BUY', -35000, 3361381, 'Mua ItemID=1', '2026-03-14 20:21:40.893'),
-    (178, 1, 'BUY', -35000, 3326381, 'Mua ItemID=1', '2026-03-14 20:21:41.210'),
+    (174, 1, 'BUY', -200000, 3466381, N'Mua ItemID=16', '2026-03-14 20:21:34.903'),
+    (175, 1, 'BUY', -35000, 3431381, N'Mua ItemID=1', '2026-03-14 20:21:40.050'),
+    (176, 1, 'BUY', -35000, 3396381, N'Mua ItemID=1', '2026-03-14 20:21:40.623'),
+    (177, 1, 'BUY', -35000, 3361381, N'Mua ItemID=1', '2026-03-14 20:21:40.893'),
+    (178, 1, 'BUY', -35000, 3326381, N'Mua ItemID=1', '2026-03-14 20:21:41.210'),
     (179, 1, 'PENALTY', -240047, 3086334, 'Timeout Penalty - Order #20', '2026-03-14 20:26:47.407'),
     (180, 1, 'PENALTY', -5041, 3081293, 'Timeout Penalty - Order #24', '2026-03-15 02:02:52.050'),
     (181, 1, 'PENALTY', -727, 3080566, 'Timeout Penalty - Order #29', '2026-03-15 02:22:04.170'),
     (182, 1, 'DELIVERY_REWARD', 2249, 3082815, 'Delivery Reward - Order #8', '2026-03-15 02:25:08.903'),
     (183, 1, 'DELIVERY_REWARD', 4707, 3087522, 'Delivery Reward - Order #31', '2026-03-15 02:26:27.450'),
-    (184, 6, 'BUY', -20000, 98923433, 'Mua ItemID=3', '2026-03-15 22:40:30.487'),
-    (185, 6, 'BUY', -200000, 98723433, 'Mua ItemID=16', '2026-03-15 22:41:17.340'),
-    (186, 6, 'BUY', -1500000, 97223433, 'Mua ItemID=12', '2026-03-15 22:41:37.333'),
-    (187, 1, 'BUY', -200000, 2887522, 'Mua ItemID=16', '2026-03-15 22:42:02.670'),
-    (188, 1, 'BUY', -10000, 2877522, 'Mua ItemID=7', '2026-03-15 23:03:07.997'),
-    (189, 6, 'BUY', -45000, 97178433, 'Mua ItemID=4', '2026-03-15 23:03:53.690'),
-    (190, 1, 'BUY', -80000, 2797522, 'Mua ItemID=9', '2026-03-15 23:04:14.940'),
+    (184, 6, 'BUY', -20000, 98923433, N'Mua ItemID=3', '2026-03-15 22:40:30.487'),
+    (185, 6, 'BUY', -200000, 98723433, N'Mua ItemID=16', '2026-03-15 22:41:17.340'),
+    (186, 6, 'BUY', -1500000, 97223433, N'Mua ItemID=12', '2026-03-15 22:41:37.333'),
+    (187, 1, 'BUY', -200000, 2887522, N'Mua ItemID=16', '2026-03-15 22:42:02.670'),
+    (188, 1, 'BUY', -10000, 2877522, N'Mua ItemID=7', '2026-03-15 23:03:07.997'),
+    (189, 6, 'BUY', -45000, 97178433, N'Mua ItemID=4', '2026-03-15 23:03:53.690'),
+    (190, 1, 'BUY', -80000, 2797522, N'Mua ItemID=9', '2026-03-15 23:04:14.940'),
     (191, 1, 'PENALTY', -30013, 2767509, 'Timeout Penalty - Order #26', '2026-03-15 23:15:06.457'),
     (192, 1, 'DELIVERY_REWARD', 20022, 2787531, 'Delivery Reward - Order #38', '2026-03-15 23:18:58.360'),
     (193, 1, 'DELIVERY_REWARD', 450132, 3237663, 'Delivery Reward - Order #34', '2026-03-15 23:34:58.330'),
@@ -744,7 +734,13 @@ INSERT INTO "TransactionLog" ("LogID", "UserID", "Type", "Amount", "BalanceAfter
     (199, 1, 'DELIVERY_REWARD', 8169, 3232843, 'Delivery Reward - Order #59', '2026-03-16 20:35:47.787'),
     (200, 1, 'DELIVERY_REWARD', 1023, 3233866, 'Delivery Reward - Order #75', '2026-03-16 20:39:04.870'),
     (201, 1, 'DELIVERY_REWARD', 2224, 3236090, 'Delivery Reward - Order #33', '2026-03-16 20:51:41.277'),
-    (202, 1, 'PENALTY', -202, 3235888, 'Cancellation Penalty - Order #79', '2026-03-16 20:53:37.913'),
+    (202, 1, 'PENALTY', -202, 3235888, 'Cancellation Penalty - Order #79', '2026-03-16 20:53:37.913'), 
     (203, 1, 'DELIVERY_REWARD', 2023, 3237911, 'Delivery Reward - Order #79', '2026-03-16 20:55:04.680'),
     (204, 1, 'PENALTY', -219, 3017657, 'Timeout Penalty - Order #63', '2026-03-16 21:02:59.400'),
     (205, 7, 'DELIVERY_REWARD', 3778, 3778, 'Delivery Reward - Order #81', '2026-03-16 21:29:29.970');
+
+-- Tắt nạp IDENTITY để hệ thống tự tăng cho giao dịch sau
+SET IDENTITY_INSERT [TransactionLog] OFF;
+
+-- Bật lại kiểm tra ràng buộc
+EXEC sp_MSforeachtable 'ALTER TABLE ? CHECK CONSTRAINT ALL';

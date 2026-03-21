@@ -137,7 +137,7 @@ public class LoginScreen extends ScreenAdapter {
         // Sử dụng Refresh Token để lấy Access Token mới
         // Vì Access Token thường hết hạn nhanh, ta dùng Refresh Token để "tự động"
         // login lại
-        HttpAuthClientManager httpClient = new HttpAuthClientManager("localhost", 8080);
+        HttpAuthClientManager httpClient = new HttpAuthClientManager("165.22.105.106", 8080);
 
         httpClient.refresh(savedRefreshToken, new HttpAuthClientManager.AuthCallback() {
             @Override
@@ -145,7 +145,7 @@ public class LoginScreen extends ScreenAdapter {
                 // Refresh thành công -> lưu access token mới, kết nối KryoNet
                 TokenStoreManager.save(newAccessToken, savedRefreshToken);
                 try {
-                    networkManager.connect("localhost");
+                    networkManager.connect("165.22.105.106");
                     networkManager.loginWithToken(newAccessToken);
                 } catch (Exception e) {
                     statusLabel.setText("Connect to server failed");
@@ -184,7 +184,7 @@ public class LoginScreen extends ScreenAdapter {
         game.setScreen(waitScreen);
 
         // Tạo HTTP client để gọi REST API
-        HttpAuthClientManager httpClient = new HttpAuthClientManager("localhost", 8080);
+        HttpAuthClientManager httpClient = new HttpAuthClientManager("165.22.105.106", 8080);
 
         if (isRegistering) {
             // REGISTER: Chỉ gọi HTTP, không kết nối KryoNet
@@ -221,7 +221,7 @@ public class LoginScreen extends ScreenAdapter {
                             TokenStoreManager.save(accessToken, refreshToken);
                         }
                         try {
-                            networkManager.connect("localhost");
+                            networkManager.connect("165.22.105.106");
                             networkManager.loginWithToken(accessToken);
                         } catch (Exception e) {
                             statusLabel.setText("Error: Cannot connect KryoNet");
