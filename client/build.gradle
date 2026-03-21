@@ -1,0 +1,15 @@
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+eclipse.project.name = appName + '-client'
+
+dependencies {
+  // 1. Thư viện chính LibGDX (Bản ổn định 1.12.1)
+  api "com.badlogicgames.gdx:gdx:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx-bullet:$gdxVersion"
+  api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+  api "com.kotcrab.vis:vis-ui:1.5.4"
+
+  // 2. Thư viện 3D GLTF (Bản chuẩn 2.2.1 - BẮT BUỘC DÙNG BẢN NÀY)
+  api "com.github.mgsx-dev.gdx-gltf:gltf:2.2.1"
+  implementation project(':sharer')
+  implementation "com.github.crykn:kryonet:2.22.8"
+}

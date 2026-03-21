@@ -1,0 +1,58 @@
+version: '3.9'
+
+services:
+  server:
+    container_name: game-server
+    # THÊM DÒNG NÀY: Để Docker biết tên Image khi push lên Hub
+    image: quangcoder/delivery-game:servergame
+    build:
+      context: .
+      dockerfile: server-spring/Dockerfile
+    depends_on:
+      db-init:
+        condition: service_completed_successfully
+    ports:
+      - "8080:8080"
+      - "54777:54777/udp"
+      - "54555:54555"
+    networks:
+      - game-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://game-sql:1433;databaseName=future-city;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=quang532006@
+
+  db-init:
+    # Bạn có thể giữ nguyên image gốc hoặc tag tên mình nếu muốn lưu vết
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: game-db-init
+    depends_on:
+      sql-server:
+        condition: service_healthy
+    networks:
+      - game-network
+    entrypoint: >
+      /opt/mssql-tools18/bin/sqlcmd -S game-sql -U sa -P "quang532006@" -C  -Q "IF DB_ID('future-city') IS NULL CREATE DATABASE [future-city]"
+
+  sql-server:
+    container_name: game-sql
+    # THÊM DÒNG NÀY: Để lưu bản SQL này vào Repo của Quang luôn
+    image: quangcoder/delivery-game:sqlgame
+    environment:
+      MSSQL_SA_PASSWORD: "quang532006@"
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Developer"
+    ports:
+      - "1435:1433"
+    networks:
+      - game-network
+    healthcheck:
+      test: [ "CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "quang532006@", "-C", "-Q", "SELECT 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  game-network:
+    driver: bridge
+    name: game-network

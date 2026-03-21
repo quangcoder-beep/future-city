@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: server-spring
+  datasource:
+    url: jdbc:sqlserver://game-sql:1433;databaseName=future-city;encrypt=true;trustServerCertificate=true
+    username: sa 
+    password: "quang532006@" 
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true 

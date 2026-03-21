@@ -1,0 +1,65 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.4.3'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '1.0.0'
+description = 'FutureCity Game Server - Spring Boot'
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://jitpack.io' }
+}
+
+ext {
+    gdxVersion     = '1.12.1'
+    gdxGltfVersion = '2.2.1'
+}
+
+// Khi chạy bootRun, working dir là thư mục gốc project
+bootRun {
+    workingDir = rootProject.projectDir
+}
+sourceSets.main.resources.srcDirs += [file('../assets').path]
+
+dependencies {
+    // Spring Boot
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // KryoNet - mạng game
+    implementation 'com.github.crykn:kryonet:2.22.8'
+
+    // libGDX Headless - đọc file map GLB
+    implementation "com.badlogicgames.gdx:gdx:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-backend-headless:${gdxVersion}"
+    implementation "com.badlogicgames.gdx:gdx-platform:${gdxVersion}:natives-desktop"
+    implementation "com.github.mgsx-dev.gdx-gltf:gltf:${gdxGltfVersion}"
+
+    // SQL Server
+    implementation 'com.microsoft.sqlserver:mssql-jdbc:12.4.2.jre11'
+
+    // BCrypt mã hoá mật khẩu
+    implementation 'org.springframework.security:spring-security-crypto'
+    
+    // JWT Token
+    implementation 'com.nimbusds:nimbus-jose-jwt:9.37.3'
+
+    // Module sharer (packets, entities, physics dùng chung)
+    implementation project(':sharer')
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

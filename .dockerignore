@@ -1,0 +1,23 @@
+.git
+.gradle
+.idea
+.vscode
+**/build/
+**/bin/
+**/out/
+dist/
+
+# Assets (Dockerfile copies models/ specifically)
+assets/ui/
+assets/textures/
+assets/sounds/
+assets/models/
+!assets/models/currentcity.glb
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+build_dist_output*.txt

@@ -1,0 +1,74 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    gradlePluginPortal()
+    mavenLocal()
+    google()
+    maven { url 'https://central.sonatype.com/repository/maven-snapshots/' }
+  }
+  dependencies {}
+}
+
+allprojects {
+  apply plugin: 'eclipse'
+  apply plugin: 'idea'
+
+  idea {
+    module {
+      outputDir = file('build/classes/java/main')
+      testOutputDir = file('build/classes/java/test')
+    }
+  }
+}
+
+configure(subprojects) {
+  apply plugin: 'java-library'
+  java.sourceCompatibility = 17 // Đảm bảo Java 17
+
+  tasks.register('generateAssetList') {
+    inputs.dir("${project.rootDir}/assets/")
+    File assetsFolder = new File("${project.rootDir}/assets/")
+    File assetsFile = new File(assetsFolder, "assets.txt")
+    assetsFile.delete()
+    fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
+      assetsFile.append(it + "\n")
+    }
+  }
+  processResources.dependsOn 'generateAssetList'
+
+  compileJava {
+    options.incremental = true
+  }
+}
+
+subprojects {
+  version = '1.0' // Đặt cứng version là 1.0 để tránh lỗi thiếu biến
+  ext.appName = 'FutureCity'
+  repositories {
+    mavenCentral()
+    mavenLocal()
+    google()
+    gradlePluginPortal()
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
+    maven { url "https://oss.sonatype.org/content/repositories/releases/" }
+
+    // QUAN TRỌNG: JitPack để tải gdx-gltf
+    maven { url 'https://jitpack.io' }
+  }
+}
+
+eclipse.project.name = 'FutureCity' + '-parent'
+
+// PHÍM TẮT CHẠY SERVER-SPRING
+tasks.register('runServer') {
+    group = 'application'
+    description = 'Chạy Server-Spring Boot'
+    dependsOn ':server-spring:bootRun'
+}
+
+// PHÍM TẮT CHẠY GAME CLIENT
+tasks.register('runClient') {
+    group = 'application'
+    description = 'Chạy Game Client (Desktop)'
+    dependsOn ':lwjgl3:run'
+}
