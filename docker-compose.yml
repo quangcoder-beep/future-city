@@ -3,11 +3,8 @@ version: '3.9'
 services:
   server:
     container_name: game-server
-    # THÊM DÒNG NÀY: Để Docker biết tên Image khi push lên Hub
-    image: quangcoder/delivery-game:servergame
-    build:
-      context: .
-      dockerfile: server-spring/Dockerfile
+    image: quangcoder/delivery-game:servergame # Nó sẽ pull từ đây
+    # Đã bỏ phần build để tránh lỗi thiếu file code trên VPS
     depends_on:
       db-init:
         condition: service_completed_successfully
@@ -23,7 +20,6 @@ services:
       - SPRING_DATASOURCE_PASSWORD=quang532006@
 
   db-init:
-    # Bạn có thể giữ nguyên image gốc hoặc tag tên mình nếu muốn lưu vết
     image: mcr.microsoft.com/mssql/server:2022-latest
     container_name: game-db-init
     depends_on:
@@ -36,8 +32,7 @@ services:
 
   sql-server:
     container_name: game-sql
-    # THÊM DÒNG NÀY: Để lưu bản SQL này vào Repo của Quang luôn
-    image: quangcoder/delivery-game:sqlgame
+    image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       MSSQL_SA_PASSWORD: "quang532006@"
       ACCEPT_EULA: "Y"
