@@ -1,81 +1,37 @@
-## Gradle & Build:
-.gradle/
-**/build/
-**/bin/
-**/out/
-gradle-app.setting
+HELP.md
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-## Java & Jpackage:
-*.class
-*.war
-*.ear
-/dist/
-**/dist/
-hs_err_pid*
-replay_pid*.log
+### STS ###
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
 
-## IDEs (IntelliJ, VSCode, Eclipse):
-.idea/
-*.ipr
+### IntelliJ IDEA ###
+.idea
 *.iws
 *.iml
-.vscode/
-.classpath
-.project
-.metadata/
-.settings/
-*.launch
-.externalToolBuilders/
-.apt_generated/
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+### NetBeans ###
 /nbproject/private/
 /nbbuild/
+/dist/
 /nbdist/
+/.nb-gradle/
 
-## OS-Specific:
-.DS_Store
-Thumbs.db
-desktop.ini
-ehthumbs.db
-
-## Assets Management:
-/assets/assets.txt
-/assets/**/*.blend*
-/assets/**/*.blend@
-/assets/**/*.fbx
-
-## Spring Boot & Docker:
-/server-spring/src/main/resources/application-local.*
-docker-compose.override.yml
-*.log
-*.tmp
-*.bak
-
-## Temporary Scripts & Data:
-/*.ps1
-/*.sh
-/*.bat
-!gradlew.bat
-/*.py
-/*.sql
-/db_data.txt
-/node_dump.txt
-/FilePatcher.java
-/FilePatcher.class
-/vande.txt
-/thongtin.txt
-/baocao_chitiet.docx
-
-## Antigravity / AI Assistant:
-.gemini/
-.agents/
-.agent/
-_agents/
-_agent/
-tasks_log.txt
-build_log.txt
-game_render_log.txt
-build_log_*.txt
-stacktrace_log_*.txt
-runtime_log_*.txt
-node_dump.txt
-db_data.txt
+### VS Code ###
+.vscode/

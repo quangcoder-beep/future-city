@@ -2131,3 +2131,5 @@ Dưới đây là danh mục tổng hợp chuẩn hóa các tài liệu học th
 13. **Mixamo (Adobe)**. (Tương tác vật lý, hệ thống Skeleton Rigging và Animation nhân vật 3D).
 14. **OpenGameArt.org**. (Tài nguyên Audio giả lập không gian và UI Textures mã nguồn mở).
 15. **Draw.io / Lucidchart**. (Phần mềm thiết kế sơ đồ Cấu trúc CSDL và Dòng lưu chuyển nghiệp vụ mạng).
+
+

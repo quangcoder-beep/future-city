@@ -1,0 +1,131 @@
+DỮ LIỆU CẤU TRÚC CƠ SỞ DỮ LIỆU GAME FUTURE CITY (PHIÊN BẢN CHÍNH THỨC 5.0)
+Cập nhật dựa trên: T-SQL Source Code (server-spring/repository/*.java)
+
+=======================================================
+1. BẢNG: Users (Tài khoản & Định danh Social)
+=======================================================
+- UserID (INT) - PK IDENTITY(1,1): Mã định danh duy nhất.
+- Email (NVARCHAR(100)) - UNIQUE: Email đăng ký.
+- Username (NVARCHAR(50)) - NULL: Tên đăng nhập (Unique Index Filtered - Chỉ duy nhất khi không NULL).
+- PasswordHash (NVARCHAR(MAX)) - NULL: Mật khẩu đã hash (NULL đối với Social Login).
+- Role (NVARCHAR(20)) - DEFAULT 'PLAYER': Quyền hạn (ADMIN, PLAYER).
+- Nickname (NVARCHAR(50)) - NULL: Tên hiển thị (Unique Index Filtered).
+- AvatarURL (NVARCHAR(MAX)) - NULL: Ảnh đại diện (Google/Facebook/Custom).
+- GoogleID (NVARCHAR(100)) - NULL: ID định danh từ Google (Unique Index Filtered).
+- FacebookID (NVARCHAR(100)) - NULL: ID định danh từ Facebook (Unique Index Filtered).
+- CreatedAt (DATETIME) - DEFAULT GETDATE(): Thời điểm tham gia.
+
+=======================================================
+2. BẢNG: Players (Dữ liệu Nhân vật & Thành tích)
+=======================================================
+- UserID (INT) - PK FK -> Users(UserID): Quan hệ 1-1 với tài khoản.
+- PosX (FLOAT) - DEFAULT 560: Tọa độ X thế giới.
+- PosY (FLOAT) - DEFAULT 1.0: Tọa độ Y (Đã ép về mặt đất 1.0).
+- PosZ (FLOAT) - DEFAULT 0: Tọa độ Z thế giới.
+- Coins (INT) - DEFAULT 0: Số dư tiền tệ.
+- UserLevel (INT) - DEFAULT 1: Cấp độ Shipper.
+- TotalDeliveries (INT) - DEFAULT 0: Tổng số đơn hoàn thành.
+- Reputation (FLOAT) - DEFAULT 100.0: Điểm uy tín (Max 100).
+
+=======================================================
+3. BẢNG: Items (Danh mục Vật phẩm)
+=======================================================
+- ItemID (INT) - PK IDENTITY(1,1): Mã vật phẩm.
+- ItemName (NVARCHAR(100)) - NOT NULL: Tên vật phẩm.
+- ItemType (NVARCHAR(20)) - NOT NULL: Loại (CONVENTIONAL, QUEST, vv).
+- Description (NVARCHAR(255)): Mô tả công dụng.
+- Rarity (NVARCHAR(20)) - DEFAULT 'COMMON': Độ hiếm.
+
+=======================================================
+4. BẢNG: PlayerInventory (Túi đồ cá nhân)
+=======================================================
+- UserID (INT) - PK FK -> Users(UserID).
+- ItemID (INT) - PK FK -> Items(ItemID).
+- Quantity (INT) - DEFAULT 1: Số lượng sở hữu.
+
+=======================================================
+5. BẢNG: Shops (Hệ thống Cửa hàng)
+=======================================================
+- ShopID (NVARCHAR(50)) - PK: Mã định danh cửa hàng (VD: SHOP_01).
+- ShopName (NVARCHAR(100)) - NOT NULL: Tên cửa hàng.
+- LocationX (FLOAT), LocationY (FLOAT), LocationZ (FLOAT): Vị trí thực tế.
+
+=======================================================
+6. BẢNG: ShopItems (Liên kết Cửa hàng - Vật phẩm)
+=======================================================
+- ShopID (NVARCHAR(50)) - PK FK -> Shops(ShopID).
+- ItemID (INT) - PK FK -> Items(ItemID).
+- Price (INT) - NOT NULL: Giá bán tại shop này.
+- MinStock (INT) - DEFAULT 5: Tồn kho tối thiểu.
+- MaxStock (INT) - DEFAULT 20: Tồn kho tối đa.
+- CurrentStock (INT) - DEFAULT 10: Tồn kho thực tế.
+- LastRestock (DATETIME) - DEFAULT GETDATE(): Lần cập nhật kho gần nhất.
+
+=======================================================
+7. BẢNG: Orders (Hệ thống Đơn hàng & Vận chuyển)
+=======================================================
+- OrderID (INT) - PK IDENTITY(1,1).
+- BuyerType (NVARCHAR(10)) - NOT NULL: PLAYER hoặc NPC.
+- BuyerRefID (NVARCHAR(50)) - NOT NULL: UserID hoặc NpcID của người mua.
+- ItemID (INT) - FK -> Items(ItemID): Loại hàng cần giao.
+- ShopID (NVARCHAR(50)) - FK -> Shops(ShopID): Nơi lấy hàng.
+- Status (NVARCHAR(20)) - DEFAULT 'PENDING': PENDING, PENDING_PICKUP, DELIVERING, COMPLETED, TIMEOUT.
+- CourierID (INT) - NULL FK -> Users(UserID): Người nhận ship.
+- DestX, DestY, DestZ (FLOAT): Tọa độ điểm giao hàng.
+- Reward (INT) - NOT NULL: Tiền công cho shipper.
+- ItemPrice (INT) - NOT NULL: Giá trị món hàng.
+- TimeoutMinutes (INT) - DEFAULT 15: Thời hạn giao đơn.
+- CreatedAt (DATETIME) - DEFAULT GETDATE().
+- AcceptedAt (DATETIME) - NULL: Thời điểm shipper nhận đơn.
+
+=======================================================
+8. BẢNG: TransactionLog (Biến động số dư)
+=======================================================
+- LogID (INT) - PK IDENTITY(1,1).
+- UserID (INT) - FK -> Users(UserID).
+- Type (NVARCHAR(20)) - NOT NULL: BUY, DELIVERY_REWARD, PENALTY, vv.
+- Amount (INT) - NOT NULL: Số tiền thay đổi (+/-).
+- BalanceAfter (INT) - NOT NULL: Số dư cuối sau giao dịch.
+- Reason (NVARCHAR(255)): Ghi chú lý do.
+- CreatedAt (DATETIME) - DEFAULT GETDATE().
+
+=======================================================
+9. BẢNG: Npcs & NpcDialogues (Hệ thống NPC)
+=======================================================
+- Bảng Npcs: NpcID (PK), NpcName, LocationX/Y/Z.
+- Bảng NpcDialogues: DialogueID (PK), NpcID (FK), LineOrder, DialogueText (NVARCHAR(500)).
+
+=======================================================
+10. BẢNG: ShopSubscribers (Đăng ký nhận tin)
+=======================================================
+- ShopID (NVARCHAR(50)) - PK FK -> Shops(ShopID).
+- UserID (INT) - PK FK -> Users(UserID).
+- SubscribedAt (DATETIME) - DEFAULT GETDATE().
+
+=======================================================
+11. HỆ THỐNG QUẢN TRỊ (ADMIN SECURITY)
+=======================================================
+- AdminLogs: Lưu Audit Trail (Lệnh Admin thực thi).
+- PlayerBans: BanID (PK), UserID, IPAddress, Reason, IsActive (BIT), ExpiresAt (DATETIME).
+- PlayerWarnings: WarningID (PK), UserID, WarningLevel (INT), Reason, WarnedBy.
+
+-------------------------------------------------------
+LƯU Ý KỸ THUẬT:
+1. Tất cả chuỗi văn bản dùng NVARCHAR để hỗ trợ tiếng Việt có dấu.
+2. Filtered Unique Indices được áp dụng cho GoogleID/FacebookID/Username để tránh lỗi trùng lặp giá trị NULL.
+3. Transactional Integrity được đảm bảo qua Spring @Transactional tại tầng Repository.
+-------------------------------------------------------
+
+=======================================================
+CÁC MỐI QUAN HỆ CHÍNH:
+=======================================================
+1. (Users) --> (1:1) --> (Players): Quan hệ sở hữu nhân vật/tài khoản game.
+2. (Users) --> (1:N) --> (TransactionLog): Lịch sử biến động tài chính của User.
+3. (Users) --> (1:N) --> (Orders) qua CourierID: Một Shipper nhận nhiều đơn hàng.
+4. (Shops) --> (1:N) --> (Orders) qua ShopID: Một shop phát sinh nhiều đơn hàng.
+5. (Items) --> (1:N) --> (Orders) qua ItemID: Các đơn hàng xoay quanh loại vật phẩm cụ thể.
+6. (Users) <-> (Items) qua PlayerInventory: Quan hệ Nhiều-Nhiều (Túi đồ).
+7. (Shops) <-> (Items) qua ShopItems: Quan hệ Nhiều-Nhiều (Danh mục hàng bán).
+8. (Users) <-> (Shops) qua ShopSubscribers: Quan hệ Nhiều-Nhiều (Theo dõi shop).
+9. (Npcs) --> (1:N) --> (NpcDialogues): Một NPC có nhiều câu thoại.
+10. (Users) --> (1:N) --> (PlayerBans) & (PlayerWarnings): Lịch sử kỷ luật người chơi.
