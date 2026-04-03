@@ -1,0 +1,15 @@
+plugins {
+    id "java-library"
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
+dependencies {
+    api "com.github.mgsx-dev.gdx-gltf:gltf:2.2.1"
+    api "com.esotericsoftware:kryo:5.5.0"
+    api "com.github.crykn:kryonet:2.22.8"
+    api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+}

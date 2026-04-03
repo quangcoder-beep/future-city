@@ -1,0 +1,41 @@
+version: '3.9'
+
+services:
+  game-sql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: game-sql
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_SA_PASSWORD: "quang532006@"
+      MSSQL_PID: "Developer"
+    networks:
+      - game-network
+    ports:
+      - "1435:1433"
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "127.0.0.1", "-U", "sa", "-P", "quang532006@", "-C", "-Q", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  game-server:
+    image: quangcoder/delivery-game:servergame
+    container_name: game-server
+    depends_on:
+      game-sql:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+      - "54555:54555/tcp"
+      - "54777:54777/udp"
+    networks:
+      - game-network
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:sqlserver://game-sql:1433;databaseName=future-city;encrypt=true;trustServerCertificate=true
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=quang532006@
+
+networks:
+  game-network:
+    driver: bridge
+    name: game-network

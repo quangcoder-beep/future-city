@@ -1,0 +1,5 @@
+dependencies {
+    implementation project(':sharer')
+    implementation "com.kotcrab.vis:vis-ui:1.5.3"
+    implementation "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login - Future City Mission Control</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-purple: #7000ff;
+            --bg-dark: #0a0b10;
+            --card-bg: rgba(20, 22, 35, 0.85);
+        }
+
+        body {
+            background: linear-gradient(135deg, #0a0b10 0%, #1a1c2c 100%);
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(0, 242, 255, 0.2);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 242, 255, 0.1);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: rgba(0, 242, 255, 0.05);
+            border-bottom: 1px solid rgba(0, 242, 255, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .card-header h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--neon-blue);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 5px;
+            font-size: 1.5rem;
+        }
+
+        .card-body {
+            padding: 40px;
+        }
+
+        .form-label {
+            color: #aaa;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .form-control {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 12px 15px;
+            border-radius: 8px;
+            transition: all 0.3s;
+        }
+
+        .form-control:focus {
+            background: rgba(0, 0, 0, 0.5);
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+            color: #fff;
+        }
+
+        .btn-primary {
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-blue));
+            border: none;
+            padding: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            border-radius: 8px;
+            margin-top: 20px;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(0, 242, 255, 0.4);
+        }
+
+        .alert {
+            background: rgba(255, 0, 60, 0.15);
+            border: 1px solid rgba(255, 0, 60, 0.3);
+            color: #ff6b8b;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: rgba(0, 255, 127, 0.15);
+            border: 1px solid rgba(0, 255, 127, 0.3);
+            color: #50fa7b;
+        }
+
+        .brand-logo {
+            font-size: 3rem;
+            color: var(--neon-blue);
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px var(--neon-blue));
+        }
+
+        /* Animation nodes */
+        .bg-nodes {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-nodes" id="particles"></div>
+
+    <div class="login-container">
+        <div class="card">
+            <div class="card-header">
+                <div class="brand-logo"><i class="fas fa-microchip"></i></div>
+                <h2>Mission Control</h2>
+                <div class="text-secondary small">Access Terminal Authorization Required</div>
+            </div>
+            <div class="card-body">
+                <!-- Thông báo lỗi hoặc logout -->
+                <div th:if="${param.error}" class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i> Sai tài khoản hoặc mật khẩu.
+                </div>
+                <div th:if="${param.logout}" class="alert alert-success">
+                    <i class="fas fa-check-circle me-2"></i> Đã đăng xuất an toàn.
+                </div>
+
+                <form th:action="@{/admin/login/process}" method="post">
+                    <div class="mb-4">
+                        <label for="username" class="form-label">Username</label>
+                        <input type="text" id="username" name="username" class="form-control" placeholder="Admin username" required autofocus>
+                    </div>
+                    <div class="mb-4">
+                        <label for="password" class="form-label">Security Key</label>
+                        <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i> Authorize Access
+                    </button>
+                    
+                    <div class="text-center mt-4">
+                        <small class="text-secondary">Future City Delivery &copy; 2026</small>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
