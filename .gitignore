@@ -1,37 +1,82 @@
-HELP.md
-.gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+## Gradle & Build:
+.gradle/
+**/build/
+**/bin/
+**/out/
+gradle-app.setting
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+## Java & Jpackage:
+*.class
+*.war
+*.ear
+/dist/
+**/dist/
+*.jar
+hs_err_pid*
+replay_pid*.log
 
-### IntelliJ IDEA ###
-.idea
+## IDEs (IntelliJ, VSCode, Eclipse):
+.idea/
+*.ipr
 *.iws
 *.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### NetBeans ###
+.vscode/
+.classpath
+.project
+.metadata/
+.settings/
+*.launch
+.externalToolBuilders/
+.apt_generated/
 /nbproject/private/
 /nbbuild/
-/dist/
 /nbdist/
 /.nb-gradle/
 
-### VS Code ###
-.vscode/
+## OS-Specific:
+.DS_Store
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+## Assets Management:
+/assets/assets.txt
+/assets/**/*.blend*
+/assets/**/*.blend@
+/assets/**/*.fbx
+
+## Spring Boot & Docker:
+/server-spring/src/main/resources/application-local.*
+docker-compose.override.yml
+*.log
+*.tmp
+*.bak
+
+## Temporary Scripts & Large Files:
+/*.ps1
+/*.sh
+/*.bat
+!gradlew.bat
+/*.py
+/*.sql
+/db_data.txt
+/node_dump.txt
+/search_results.csv
+/baocao_chitiet.docx
+/baocao_chitiet.txt
+/build_diag.txt
+
+## Antigravity / AI Assistant:
+.gemini/
+.agents/
+.agent/
+_agents/
+_agent/
+tasks_log.txt
+build_log.txt
+game_render_log.txt
+build_log_*.txt
+stacktrace_log_*.txt
+runtime_log_*.txt
+node_dump.txt
+db_data.txt
